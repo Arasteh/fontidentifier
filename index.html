@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>Persian Font Identifier - MVP</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  max-width: 700px;
+  margin: 40px auto;
+  background: #f5f5f5;
+}
+h1 {
+  text-align: center;
+}
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+select, input, button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+button {
+  cursor: pointer;
+}
+.result {
+  padding: 10px;
+  background: #eef;
+  margin-bottom: 10px;
+  border-radius: 6px;
+}
+</style>
+</head>
+<body>
+
+<h1>Font Finder (MVP)</h1>
+
+<div class="card">
+  <label>حلقه ح اول</label>
+  <select id="heh_initial_loop">
+    <option value="">انتخاب کنید</option>
+  </select>
+
+  <label>نسبت ارتفاع ح اول به الف</label>
+  <input type="number" id="heh_initial_height_ratio_to_alif" step="0.1" min="0" max="1" placeholder="مثلاً 0.5">
+
+  <label>شکل نقطه‌ها</label>
+  <select id="dot_shape">
+    <option value="">انتخاب کنید</option>
+  </select>
+
+  <button onclick="runSearch()">جستجو</button>
+</div>
+
+<div class="card">
+  <h3>نتایج:</h3>
+  <div id="results"></div>
+</div>
+
+<script>
+let database = null;
+
+fetch('database.json')
+  .then(res => res.json())
+  .then(data => {
+    database = data;
+    populateFilters();
+  });
+
+function populateFilters() {
+  const loopSelect = document.getElementById('heh_initial_loop');
+  const dotSelect = document.getElementById('dot_shape');
+
+  database.features.heh_initial_loop.values.forEach(v => {
+    loopSelect.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+
+  database.features.dot_shape.values.forEach(v => {
+    dotSelect.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+}
+
+function runSearch() {
+  const selected = {
+    heh_initial_loop: document.getElementById('heh_initial_loop').value,
+    heh_initial_height_ratio_to_alif: document.getElementById('heh_initial_height_ratio_to_alif').value,
+    dot_shape: document.getElementById('dot_shape').value
+  };
+
+  const activeFilters = Object.entries(selected).filter(([k,v]) => v !== "");
+  const results = [];
+
+  database.fonts.forEach(font => {
+    let score = 0;
+
+    activeFilters.forEach(([key, value]) => {
+      const fontValue = font.features[key];
+
+      if (Array.isArray(fontValue)) {
+        if (fontValue.includes(value)) score++;
+      } else {
+        if (parseFloat(fontValue) === parseFloat(value)) score++;
+      }
+    });
+
+    const percentage = activeFilters.length > 0 
+      ? Math.round((score / activeFilters.length) * 100)
+      : 0;
+
+    results.push({
+      name: font.name,
+      score: percentage
+    });
+  });
+
+  results.sort((a,b) => b.score - a.score);
+  displayResults(results);
+}
+
+function displayResults(results) {
+  const container = document.getElementById('results');
+  container.innerHTML = "";
+
+  results.forEach(r => {
+    container.innerHTML += `
+      <div class="result">
+        <strong>${r.name}</strong> — ${r.score}%
+      </div>
+    `;
+  });
+}
+</script>
+
+</body>
+</html>
