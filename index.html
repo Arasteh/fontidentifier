@@ -2,15 +2,16 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>Persian Font Identifier - Smart MVP</title>
+<title>Persian Font Identifier – Advanced MVP</title>
 
 <style>
 body {
   font-family: sans-serif;
-  max-width: 750px;
+  max-width: 800px;
   margin: 40px auto;
   background: #f4f4f4;
 }
+
 h1 { text-align: center; }
 
 .card {
@@ -21,9 +22,9 @@ h1 { text-align: center; }
 }
 
 button {
-  padding: 10px;
+  padding: 10px 16px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .result {
@@ -35,58 +36,97 @@ button {
 
 .hidden { display: none; }
 
-.progress {
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #666;
+.progress-bar-container {
+  background: #ddd;
+  height: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #4a78ff;
+  width: 0%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.summary-item {
+  background: #f0f0f0;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
 }
 </style>
 </head>
 <body>
 
-<h1>Font Finder – Smart MVP</h1>
+<h1>Font Finder – Advanced MVP</h1>
 
 <div class="card" id="questionCard">
-  <div class="progress" id="progress"></div>
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
   <div id="questionContainer"></div>
   <button onclick="nextStep()">ادامه</button>
 </div>
 
 <div class="card hidden" id="resultsCard">
+  <h3>خلاصه انتخاب‌ها:</h3>
+  <div id="summary"></div>
+
   <h3>نتایج:</h3>
   <div id="results"></div>
   <button onclick="restart()">شروع دوباره</button>
 </div>
 
 <script>
-let database = null;
+let database;
+let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
-let featureKeys = [];
-let remainingFonts = [];
+let activeFonts = [];
 
 fetch('database.json')
   .then(res => res.json())
   .then(data => {
     database = data;
-    featureKeys = Object.keys(database.features);
-    remainingFonts = [...database.fonts];
+    featureKeys = rankFeaturesByDiscrimination();
+    activeFonts = database.fonts.map(f => ({...f, _score:0}));
     renderQuestion();
   });
 
-function renderQuestion() {
-  const container = document.getElementById("questionContainer");
-  const progress = document.getElementById("progress");
+/* ---------- Feature Ranking (Entropy-lite) ---------- */
+function rankFeaturesByDiscrimination() {
+  const keys = Object.keys(database.features);
 
-  if (currentStep >= featureKeys.length) {
+  return keys.sort((a,b) => {
+    return diversityScore(b) - diversityScore(a);
+  });
+}
+
+function diversityScore(featureKey) {
+  const values = new Set();
+  database.fonts.forEach(font => {
+    const v = font.features[featureKey];
+    if (Array.isArray(v)) v.forEach(x => values.add(x));
+    else values.add(v);
+  });
+  return values.size;
+}
+
+/* ---------- Render Question ---------- */
+function renderQuestion() {
+  if (currentStep >= featureKeys.length || activeFonts.length <= 1) {
     showResults();
     return;
   }
 
   const key = featureKeys[currentStep];
   const feature = database.features[key];
+  const container = document.getElementById("questionContainer");
 
-  progress.innerText = `سوال ${currentStep + 1} از ${featureKeys.length}`;
+  updateProgress();
 
   container.innerHTML = `<label>${feature.label_fa}</label><br/>`;
 
@@ -107,9 +147,9 @@ function renderQuestion() {
     });
 
     container.appendChild(select);
+  }
 
-  } else if (feature.type === "numeric") {
-
+  if (feature.type === "numeric") {
     const input = document.createElement("input");
     input.type = "range";
     input.min = 0;
@@ -118,88 +158,109 @@ function renderQuestion() {
     input.value = 0.5;
     input.id = "answer";
 
-    const valueLabel = document.createElement("div");
-    valueLabel.id = "rangeValue";
-    valueLabel.innerText = "0.5";
+    const label = document.createElement("div");
+    label.innerText = "0.5";
 
-    input.oninput = () => {
-      valueLabel.innerText = input.value;
-    };
+    input.oninput = () => label.innerText = input.value;
 
     container.appendChild(input);
-    container.appendChild(valueLabel);
+    container.appendChild(label);
   }
 }
 
+/* ---------- Next Step ---------- */
 function nextStep() {
   const answerEl = document.getElementById("answer");
-  if (!answerEl) return;
-
-  const value = answerEl.value;
-  if (value === "") return;
+  if (!answerEl || answerEl.value === "") return;
 
   const key = featureKeys[currentStep];
-  selectedAnswers[key] = value;
+  const value = answerEl.value;
 
-  filterRemainingFonts(key, value);
+  selectedAnswers[key] = value;
+  scoreFonts(key, value);
 
   currentStep++;
   renderQuestion();
 }
 
-function filterRemainingFonts(key, value) {
-  remainingFonts = remainingFonts.map(font => {
-    let score = 0;
+/* ---------- Scoring + Early Elimination ---------- */
+function scoreFonts(key, value) {
 
+  activeFonts.forEach(font => {
+    let score = 0;
     const fontValue = font.features[key];
 
     if (Array.isArray(fontValue)) {
       if (fontValue.includes(value)) score = 1;
     } else {
-      // FUZZY numeric scoring
       const diff = Math.abs(parseFloat(fontValue) - parseFloat(value));
-      score = Math.max(0, 1 - diff); 
+      score = Math.max(0, 1 - diff);
     }
 
-    return {
-      ...font,
-      _score: (font._score || 0) + score
-    };
+    font._score += score;
+  });
+
+  const maxPossible = currentStep + 1;
+  activeFonts = activeFonts.filter(f => {
+    const ratio = f._score / maxPossible;
+    return ratio > 0.3;  // حذف زودهنگام
   });
 }
 
+/* ---------- Results ---------- */
 function showResults() {
   document.getElementById("questionCard").classList.add("hidden");
   document.getElementById("resultsCard").classList.remove("hidden");
 
   const totalQuestions = Object.keys(selectedAnswers).length;
 
-  const scored = remainingFonts.map(f => {
-    const percentage = Math.round((f._score / totalQuestions) * 100);
-    return {
-      name: f.name,
-      score: percentage
-    };
+  activeFonts.forEach(f => {
+    f._percentage = Math.round((f._score / totalQuestions) * 100);
   });
 
-  scored.sort((a,b) => b.score - a.score);
+  activeFonts.sort((a,b)=>b._percentage - a._percentage);
 
-  const container = document.getElementById("results");
+  renderSummary();
+  renderResults();
+}
+
+function renderSummary() {
+  const container = document.getElementById("summary");
   container.innerHTML = "";
 
-  scored.forEach(r => {
+  Object.entries(selectedAnswers).forEach(([key,value]) => {
+    const label = database.features[key].label_fa;
     container.innerHTML += `
-      <div class="result">
-        <strong>${r.name}</strong> — ${r.score}%
+      <div class="summary-item">
+        ${label}: ${value}
       </div>
     `;
   });
 }
 
+function renderResults() {
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  activeFonts.forEach(font => {
+    container.innerHTML += `
+      <div class="result">
+        <strong>${font.name}</strong> — ${font._percentage}%
+      </div>
+    `;
+  });
+}
+
+/* ---------- UI ---------- */
+function updateProgress() {
+  const percent = (currentStep / featureKeys.length) * 100;
+  document.getElementById("progressBar").style.width = percent + "%";
+}
+
 function restart() {
   currentStep = 0;
   selectedAnswers = {};
-  remainingFonts = [...database.fonts];
+  activeFonts = database.fonts.map(f => ({...f, _score:0}));
   document.getElementById("resultsCard").classList.add("hidden");
   document.getElementById("questionCard").classList.remove("hidden");
   renderQuestion();
