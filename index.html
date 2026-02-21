@@ -2,12 +2,12 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>Persian Font Identifier – Advanced MVP</title>
+<title>Persian Font Identifier – Live Ranking MVP</title>
 
 <style>
 body {
-  font-family: sans-serif;
-  max-width: 800px;
+  font-family: system-ui;
+  max-width: 850px;
   margin: 40px auto;
   background: #f4f4f4;
 }
@@ -22,19 +22,19 @@ h1 { text-align: center; }
 }
 
 button {
-  padding: 10px 16px;
+  padding: 8px 14px;
   cursor: pointer;
   margin-top: 15px;
+  margin-left: 5px;
 }
 
 .result {
-  padding: 10px;
+  padding: 8px;
   background: #e8f0ff;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   border-radius: 6px;
+  font-size: 14px;
 }
-
-.hidden { display: none; }
 
 .progress-bar-container {
   background: #ddd;
@@ -53,31 +53,36 @@ button {
 
 .summary-item {
   background: #f0f0f0;
-  padding: 8px;
+  padding: 6px;
   border-radius: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  font-size: 13px;
 }
 </style>
 </head>
 <body>
 
-<h1>Font Finder – Advanced MVP</h1>
+<h1>Font Finder – Live Ranking</h1>
 
-<div class="card" id="questionCard">
+<div class="card">
   <div class="progress-bar-container">
     <div class="progress-bar" id="progressBar"></div>
   </div>
+
   <div id="questionContainer"></div>
-  <button onclick="nextStep()">ادامه</button>
+
+  <div>
+    <button onclick="prevStep()">سؤال قبلی</button>
+    <button onclick="nextStep()">سؤال بعدی</button>
+  </div>
 </div>
 
-<div class="card hidden" id="resultsCard">
+<div class="card">
   <h3>خلاصه انتخاب‌ها:</h3>
   <div id="summary"></div>
 
-  <h3>نتایج:</h3>
-  <div id="results"></div>
-  <button onclick="restart()">شروع دوباره</button>
+  <h3>رتبه‌بندی فعلی فونت‌ها:</h3>
+  <div id="liveResults"></div>
 </div>
 
 <script>
@@ -85,24 +90,21 @@ let database;
 let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
-let activeFonts = [];
 
 fetch('database.json')
   .then(res => res.json())
   .then(data => {
     database = data;
     featureKeys = rankFeaturesByDiscrimination();
-    activeFonts = database.fonts.map(f => ({...f, _score:0}));
     renderQuestion();
+    updateLiveResults();
   });
 
-/* ---------- Feature Ranking (Entropy-lite) ---------- */
+/* --------- مرتب‌سازی ویژگی‌ها --------- */
 function rankFeaturesByDiscrimination() {
   const keys = Object.keys(database.features);
 
-  return keys.sort((a,b) => {
-    return diversityScore(b) - diversityScore(a);
-  });
+  return keys.sort((a,b) => diversityScore(b) - diversityScore(a));
 }
 
 function diversityScore(featureKey) {
@@ -115,12 +117,11 @@ function diversityScore(featureKey) {
   return values.size;
 }
 
-/* ---------- Render Question ---------- */
+/* --------- رندر سؤال --------- */
 function renderQuestion() {
-  if (currentStep >= featureKeys.length || activeFonts.length <= 1) {
-    showResults();
-    return;
-  }
+
+  if (currentStep >= featureKeys.length)
+    currentStep = featureKeys.length - 1;
 
   const key = featureKeys[currentStep];
   const feature = database.features[key];
@@ -146,6 +147,9 @@ function renderQuestion() {
       select.appendChild(option);
     });
 
+    if (selectedAnswers[key])
+      select.value = selectedAnswers[key];
+
     container.appendChild(select);
   }
 
@@ -155,75 +159,100 @@ function renderQuestion() {
     input.min = 0;
     input.max = 1;
     input.step = 0.1;
-    input.value = 0.5;
+    input.value = selectedAnswers[key] || 0.5;
     input.id = "answer";
 
     const label = document.createElement("div");
-    label.innerText = "0.5";
+    label.innerText = input.value;
 
-    input.oninput = () => label.innerText = input.value;
+    input.oninput = () => {
+      label.innerText = input.value;
+      selectedAnswers[key] = input.value;
+      updateLiveResults();
+      renderSummary();
+    };
 
     container.appendChild(input);
     container.appendChild(label);
   }
 }
 
-/* ---------- Next Step ---------- */
+/* --------- مرحله بعد --------- */
 function nextStep() {
   const answerEl = document.getElementById("answer");
-  if (!answerEl || answerEl.value === "") return;
+  if (!answerEl) return;
 
-  const key = featureKeys[currentStep];
   const value = answerEl.value;
+  const key = featureKeys[currentStep];
 
-  selectedAnswers[key] = value;
-  scoreFonts(key, value);
+  if (value !== "")
+    selectedAnswers[key] = value;
 
-  currentStep++;
+  updateLiveResults();
+  renderSummary();
+
+  if (currentStep < featureKeys.length - 1)
+    currentStep++;
+
   renderQuestion();
 }
 
-/* ---------- Scoring + Early Elimination ---------- */
-function scoreFonts(key, value) {
+/* --------- مرحله قبل --------- */
+function prevStep() {
+  if (currentStep > 0)
+    currentStep--;
 
-  activeFonts.forEach(font => {
+  renderQuestion();
+}
+
+/* --------- محاسبه امتیاز کامل --------- */
+function calculateScores() {
+  const results = database.fonts.map(font => {
     let score = 0;
-    const fontValue = font.features[key];
+    let total = 0;
 
-    if (Array.isArray(fontValue)) {
-      if (fontValue.includes(value)) score = 1;
-    } else {
-      const diff = Math.abs(parseFloat(fontValue) - parseFloat(value));
-      score = Math.max(0, 1 - diff);
+    for (let key in selectedAnswers) {
+      const value = selectedAnswers[key];
+      const fontValue = font.features[key];
+      total++;
+
+      if (Array.isArray(fontValue)) {
+        if (fontValue.includes(value)) score++;
+      } else {
+        const diff = Math.abs(parseFloat(fontValue) - parseFloat(value));
+        score += Math.max(0, 1 - diff);
+      }
     }
 
-    font._score += score;
+    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+
+    return {
+      name: font.name,
+      percentage
+    };
   });
 
-  const maxPossible = currentStep + 1;
-  activeFonts = activeFonts.filter(f => {
-    const ratio = f._score / maxPossible;
-    return ratio > 0.3;  // حذف زودهنگام
+  results.sort((a,b)=>b.percentage - a.percentage);
+  return results;
+}
+
+/* --------- نمایش زنده نتایج --------- */
+function updateLiveResults() {
+  const container = document.getElementById("liveResults");
+  container.innerHTML = "";
+
+  const results = calculateScores();
+
+  results.forEach(r => {
+    container.innerHTML += `
+      <div class="result">
+        <strong>${r.name}</strong> — ${r.percentage}%
+      </div>
+    `;
   });
 }
 
-/* ---------- Results ---------- */
-function showResults() {
-  document.getElementById("questionCard").classList.add("hidden");
-  document.getElementById("resultsCard").classList.remove("hidden");
-
-  const totalQuestions = Object.keys(selectedAnswers).length;
-
-  activeFonts.forEach(f => {
-    f._percentage = Math.round((f._score / totalQuestions) * 100);
-  });
-
-  activeFonts.sort((a,b)=>b._percentage - a._percentage);
-
-  renderSummary();
-  renderResults();
-}
-
+/* --------- خلاصه انتخاب‌ها --------- */
 function renderSummary() {
   const container = document.getElementById("summary");
   container.innerHTML = "";
@@ -238,32 +267,10 @@ function renderSummary() {
   });
 }
 
-function renderResults() {
-  const container = document.getElementById("results");
-  container.innerHTML = "";
-
-  activeFonts.forEach(font => {
-    container.innerHTML += `
-      <div class="result">
-        <strong>${font.name}</strong> — ${font._percentage}%
-      </div>
-    `;
-  });
-}
-
-/* ---------- UI ---------- */
+/* --------- پیشرفت --------- */
 function updateProgress() {
   const percent = (currentStep / featureKeys.length) * 100;
   document.getElementById("progressBar").style.width = percent + "%";
-}
-
-function restart() {
-  currentStep = 0;
-  selectedAnswers = {};
-  activeFonts = database.fonts.map(f => ({...f, _score:0}));
-  document.getElementById("resultsCard").classList.add("hidden");
-  document.getElementById("questionCard").classList.remove("hidden");
-  renderQuestion();
 }
 </script>
 
