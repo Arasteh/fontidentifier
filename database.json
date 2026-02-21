@@ -1,0 +1,61 @@
+{
+  "version": "0.1",
+  "features": {
+    "heh_initial_loop": {
+      "label_fa": "حلقه ح اول",
+      "type": "categorical",
+      "values": ["باز", "بسته"]
+    },
+    "heh_initial_height_ratio_to_alif": {
+      "label_fa": "نسبت ارتفاع ح اول به الف",
+      "type": "numeric"
+    },
+    "dot_shape": {
+      "label_fa": "شکل نقطه‌ها",
+      "type": "categorical",
+      "values": ["دایره", "لوزی", "مربع", "پیوسته"]
+    }
+  },
+  "fonts": [
+    {
+      "name": "شازده",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.7,
+        "dot_shape": ["لوزی"]
+      }
+    },
+    {
+      "name": "دوران",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.5,
+        "dot_shape": ["لوزی", "پیوسته"]
+      }
+    },
+    {
+      "name": "مصحفی",
+      "features": {
+        "heh_initial_loop": ["بسته"],
+        "heh_initial_height_ratio_to_alif": 0.3,
+        "dot_shape": ["لوزی"]
+      }
+    },
+    {
+      "name": "انجمن",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.5,
+        "dot_shape": ["لوزی"]
+      }
+    },
+    {
+      "name": "فرزاد",
+      "features": {
+        "heh_initial_loop": ["بسته"],
+        "heh_initial_height_ratio_to_alif": 0.5,
+        "dot_shape": ["دایره"]
+      }
+    }
+  ]
+}
