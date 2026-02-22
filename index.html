@@ -2,21 +2,25 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>Font Finder</title>
+<title>Font Finder Pro</title>
 
 <style>
 body{
   font-family:system-ui,sans-serif;
-  max-width:1000px;
-  margin:40px auto;
+  margin:40px;
   background:#f4f4f4;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:30px;
 }
 
 .card{
   background:white;
   padding:20px;
   border-radius:14px;
-  margin-bottom:20px;
 }
 
 button{
@@ -47,34 +51,45 @@ button{
   margin-bottom:6px;
   border-radius:6px;
   background:#e8f0ff;
-  transition:0.3s;
 }
 .result.highlight{
-  background:#cfe0ff;
   border:2px solid #4a78ff;
+  background:#cfe0ff;
 }
 
 .ratio-visual{
   display:flex;
   align-items:flex-end;
   gap:20px;
-  height:140px;
-  margin-top:10px;
+  height:160px;
+  margin-top:15px;
+  position:relative;
 }
+
 .rect{
-  width:40px;
+  width:50px;
   background:#4a78ff;
-  transition:0.3s;
+  transition:0.2s;
+  cursor:ns-resize;
 }
 .rect.base{
   background:#ccc;
   height:100%;
+  cursor:default;
+}
+
+@media(max-width:900px){
+  .layout{
+    grid-template-columns:1fr;
+  }
 }
 </style>
 </head>
 <body>
 
 <h1>Font Finder</h1>
+
+<div class="layout">
 
 <div class="card">
 <div id="historyChips"></div>
@@ -90,6 +105,8 @@ button{
 <div class="card">
 <h3>نتایج</h3>
 <div id="results"></div>
+</div>
+
 </div>
 
 <script>
@@ -108,15 +125,44 @@ fetch('database.json')
   updateResults();
 });
 
-/* ---------- URL ---------- */
+/* ---------- URL Compression ---------- */
 function updateURL(){
-  const params=new URLSearchParams(selectedAnswers);
-  history.replaceState(null,"","?"+params.toString());
+  let compressed="";
+  featureKeys.forEach(key=>{
+    const feature=database.features[key];
+    const val=selectedAnswers[key];
+
+    if(val===undefined){
+      compressed+="x";
+      return;
+    }
+
+    if(feature.type==="categorical"){
+      compressed+=feature.values.indexOf(val);
+    }else{
+      compressed+=Math.round(val*10);
+    }
+  });
+
+  history.replaceState(null,"","?f="+compressed);
 }
+
 function loadFromURL(){
-  const params=new URLSearchParams(window.location.search);
-  params.forEach((v,k)=>{
-    selectedAnswers[k]=isNaN(v)?v:parseFloat(v);
+  const params=new URLSearchParams(location.search);
+  const str=params.get("f");
+  if(!str) return;
+
+  featureKeys.forEach((key,i)=>{
+    const char=str[i];
+    if(!char || char==="x") return;
+
+    const feature=database.features[key];
+
+    if(feature.type==="categorical"){
+      selectedAnswers[key]=feature.values[parseInt(char)];
+    }else{
+      selectedAnswers[key]=parseInt(char)/10;
+    }
   });
 }
 
@@ -167,12 +213,9 @@ function renderQuestion(){
 
     const numberInput=document.createElement("input");
     numberInput.type="number";
-    numberInput.min=0;
-    numberInput.max=1;
-    numberInput.step=0.1;
+    numberInput.min=0;numberInput.max=1;numberInput.step=0.1;
     numberInput.value=value;
     numberInput.style.width="60px";
-    numberInput.style.marginRight="10px";
 
     const visual=document.createElement("div");
     visual.className="ratio-visual";
@@ -197,6 +240,19 @@ function renderQuestion(){
 
     slider.oninput=e=>updateValue(e.target.value);
     numberInput.oninput=e=>updateValue(e.target.value);
+
+    /* 🔥 Drag Support */
+    dynamic.onmousedown=function(e){
+      e.preventDefault();
+      document.onmousemove=function(ev){
+        const rect=visual.getBoundingClientRect();
+        const percent=(rect.bottom-ev.clientY)/rect.height;
+        updateValue(percent);
+      };
+      document.onmouseup=function(){
+        document.onmousemove=null;
+      };
+    };
 
     visual.appendChild(dynamic);
     visual.appendChild(base);
@@ -259,7 +315,7 @@ function calculateScores(){
       }
     });
     const percent=total?Math.round((score/total)*100):0;
-    return {name:font.name,percent};
+    return {font,percent};
   }).sort((a,b)=>b.percent-a.percent);
 }
 
@@ -271,27 +327,18 @@ function updateResults(){
   results.forEach((r,i)=>{
     const div=document.createElement("div");
     div.className="result";
-    div.innerHTML="<b>"+r.name+"</b> — "+r.percent+"%";
+
+    if(i===0 && r.percent>0){
+      if(results[1] && r.percent-results[1].percent>=5)
+        div.classList.add("highlight");
+    }
+
+    div.innerHTML=
+      "<b>"+r.font.name+"</b> — "+r.percent+"% "+
+      (r.font.url?`<a href="${r.font.url}" target="_blank">[پروفایل]</a>`:"");
+
     resBox.appendChild(div);
   });
-
-  applyHighlight(results);
-}
-
-function applyHighlight(results){
-  if(results.length<2) return;
-
-  const top=results[0].percent;
-  const second=results[1].percent;
-
-  if(top===0 || top===second) return;
-
-  const diff=top-second;
-
-  if(diff>=5){
-    const nodes=document.querySelectorAll(".result");
-    nodes[0].classList.add("highlight");
-  }
 }
 </script>
 
