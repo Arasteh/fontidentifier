@@ -62,6 +62,7 @@
             border-radius: 4px 4px 0 0;
             position: relative;
             transition: height 0.1s ease;
+            pointer-events: none; /* جلوگیری از تداخل با رویداد درگ والد */
         }
         .rect.base { background: #ddd; height: 100%; border-radius: 4px; }
         .rect-label {
@@ -130,7 +131,6 @@
 </div>
 
 <script>
-// متغیر سراسری برای ذخیره داده‌ها پس از بارگذاری از فایل خارجی
 let database = null;
 let featureKeys = [];
 let currentStep = 0;
@@ -138,7 +138,6 @@ let selectedAnswers = {};
 
 async function init() {
     try {
-        // بارگذاری دیتابیس از فایل خارجی
         const response = await fetch('database.json');
         if (!response.ok) throw new Error('فایل دیتابیس یافت نشد.');
         database = await response.json();
@@ -231,39 +230,43 @@ function renderQuestion() {
         `;
 
         let isDragging = false;
-        const updateFromEvent = (e) => {
+        
+        const updateVisualOnly = (percent) => {
+            const rect = document.getElementById("dragRect");
+            if (rect) {
+                rect.style.height = (percent * 100) + "%";
+                rect.querySelector('.rect-label').innerText = Math.round(percent * 100) + "%";
+            }
+        };
+
+        const handleInteraction = (e) => {
             const rect = visual.getBoundingClientRect();
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             let percent = 1 - ((clientY - rect.top) / rect.height);
             percent = Math.max(0, Math.min(1, percent));
-            updateNumericValue(key, Math.round(percent * 10) / 10);
+            const roundedVal = Math.round(percent * 10) / 10;
+            
+            updateVisualOnly(roundedVal);
+            selectedAnswers[key] = roundedVal;
+            updateURL();
+            updateResults();
+            
+            // فقط متن دکمه را آپدیت می‌کنیم بدون رندر مجدد کل بخش
+            if (nextBtn.innerText.includes("نمی‌دانم")) {
+                nextBtn.innerText = "بعدی";
+            }
         };
 
-        const startDrag = (e) => { isDragging = true; updateFromEvent(e); };
-        const stopDrag = () => isDragging = false;
-        const doDrag = (e) => { if (isDragging) { e.preventDefault(); updateFromEvent(e); } };
-
-        visual.addEventListener('mousedown', startDrag);
-        window.addEventListener('mouseup', stopDrag);
-        window.addEventListener('mousemove', doDrag);
-        visual.addEventListener('touchstart', startDrag, {passive: false});
-        window.addEventListener('touchend', stopDrag);
-        window.addEventListener('touchmove', doDrag, {passive: false});
+        visual.addEventListener('mousedown', (e) => { isDragging = true; handleInteraction(e); });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', (e) => { if (isDragging) handleInteraction(e); });
+        
+        visual.addEventListener('touchstart', (e) => { isDragging = true; handleInteraction(e); }, {passive: false});
+        window.addEventListener('touchend', () => { isDragging = false; });
+        window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); handleInteraction(e); } }, {passive: false});
 
         container.appendChild(visual);
     }
-}
-
-function updateNumericValue(key, val) {
-    selectedAnswers[key] = val;
-    const rect = document.getElementById("dragRect");
-    if (rect) {
-        rect.style.height = (val * 100) + "%";
-        rect.querySelector('.rect-label').innerText = Math.round(val * 100) + "%";
-    }
-    updateURL();
-    renderQuestion(); 
-    updateResults();
 }
 
 function nextStep() {
@@ -302,6 +305,7 @@ function updateResults() {
     const resBox = document.getElementById("results");
     resBox.innerHTML = "";
 
+    const hasAnyAnswer = Object.values(selectedAnswers).some(v => v !== undefined);
     let finalFlatResults = [];
 
     database.fonts.forEach(font => {
@@ -327,19 +331,24 @@ function updateResults() {
 
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
-                const s = calculateScore(font.weights[wName]);
-                if (s > 0) finalFlatResults.push({ name: font.name, url: font.url, weight: wName, score: s });
+                const s = hasAnyAnswer ? calculateScore(font.weights[wName]) : 0;
+                finalFlatResults.push({ name: font.name, url: font.url, weight: wName, score: s });
             });
         } else {
-            const s = calculateScore(font.features);
-            if (s > 0) finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
+            const s = hasAnyAnswer ? calculateScore(font.features) : 0;
+            finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
         }
     });
 
-    finalFlatResults.sort((a, b) => b.score - a.score);
+    if (!hasAnyAnswer) {
+        // نمایش تصادفی لیست اولیه بدون درصد
+        finalFlatResults = finalFlatResults.sort(() => Math.random() - 0.5).slice(0, 8);
+    } else {
+        finalFlatResults = finalFlatResults.filter(r => r.score > 0).sort((a, b) => b.score - a.score);
+    }
 
-    if (finalFlatResults.length === 0) {
-        resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>منتظر پاسخ‌های شما...</p>";
+    if (finalFlatResults.length === 0 && hasAnyAnswer) {
+        resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>نتیجه‌ای یافت نشد.</p>";
         return;
     }
 
@@ -354,7 +363,7 @@ function updateResults() {
                 </div>
                 ${res.url ? `<a href="${res.url}" target="_blank" class="profile-link">لینک</a>` : ''}
             </div>
-            <span class="match-score">${Math.round(res.score * 100)}%</span>
+            ${hasAnyAnswer ? `<span class="match-score">${Math.round(res.score * 100)}%</span>` : ''}
         `;
         resBox.appendChild(div);
     });
@@ -368,7 +377,6 @@ function resetAll() {
     updateResults();
 }
 
-// اجرای تابع شروع
 init();
 </script>
 </body>
