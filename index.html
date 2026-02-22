@@ -10,25 +10,21 @@ body{
   margin:40px;
   background:#f4f4f4;
 }
-
 .layout{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:30px;
 }
-
 .card{
   background:white;
   padding:20px;
   border-radius:14px;
 }
-
 button{
   padding:8px 16px;
   cursor:pointer;
   margin-left:6px;
 }
-
 .chip{
   display:inline-block;
   padding:6px 14px;
@@ -45,7 +41,6 @@ button{
 .chip.history{
   background:#d4e3ff;
 }
-
 .result{
   padding:8px;
   margin-bottom:6px;
@@ -56,7 +51,6 @@ button{
   border:2px solid #4a78ff;
   background:#cfe0ff;
 }
-
 .ratio-visual{
   display:flex;
   align-items:flex-end;
@@ -65,7 +59,6 @@ button{
   margin-top:15px;
   position:relative;
 }
-
 .rect{
   width:50px;
   background:#4a78ff;
@@ -77,7 +70,6 @@ button{
   height:100%;
   cursor:default;
 }
-
 @media(max-width:900px){
   .layout{
     grid-template-columns:1fr;
@@ -90,7 +82,6 @@ button{
 <h1>Font Finder</h1>
 
 <div class="layout">
-
 <div class="card">
 <div id="historyChips"></div>
 <div id="questionContainer"></div>
@@ -106,7 +97,6 @@ button{
 <h3>نتایج</h3>
 <div id="results"></div>
 </div>
-
 </div>
 
 <script>
@@ -125,29 +115,16 @@ fetch('database.json')
   updateResults();
 });
 
-/* ---------- URL Compression ---------- */
 function updateURL(){
   let compressed="";
   featureKeys.forEach(key=>{
     const feature=database.features[key];
     const val=selectedAnswers[key];
-
-    if(val===undefined){
-      compressed+="x";
-      return;
-    }
-    if(val===null){
-      compressed+="u";
-      return;
-    }
-
-    if(feature.type==="categorical"){
-      compressed+=feature.values.indexOf(val);
-    }else{
-      compressed+=Math.round(val*10);
-    }
+    if(val===undefined) compressed+="x";
+    else if(val===null) compressed+="u";
+    else if(feature.type==="categorical") compressed+=feature.values.indexOf(val);
+    else compressed+=Math.round(val*10);
   });
-
   history.replaceState(null,"","?f="+compressed);
 }
 
@@ -155,25 +132,16 @@ function loadFromURL(){
   const params=new URLSearchParams(location.search);
   const str=params.get("f");
   if(!str) return;
-
   featureKeys.forEach((key,i)=>{
     const char=str[i];
     if(!char || char==="x") return;
-    if(char==="u"){
-      selectedAnswers[key]=null;
-      return;
-    }
-
+    if(char==="u"){ selectedAnswers[key]=null; return; }
     const feature=database.features[key];
-    if(feature.type==="categorical"){
-      selectedAnswers[key]=feature.values[parseInt(char)];
-    }else{
-      selectedAnswers[key]=parseInt(char)/10;
-    }
+    if(feature.type==="categorical") selectedAnswers[key]=feature.values[parseInt(char)];
+    else selectedAnswers[key]=parseInt(char)/10;
   });
 }
 
-/* ---------- Reset ---------- */
 function resetAll(){
   selectedAnswers={};
   currentStep=0;
@@ -182,7 +150,6 @@ function resetAll(){
   updateResults();
 }
 
-/* ---------- Question ---------- */
 function renderQuestion(){
   const key=featureKeys[currentStep];
   const feature=database.features[key];
@@ -191,10 +158,9 @@ function renderQuestion(){
   renderHistory();
 
   const currentVal = selectedAnswers[key];
-
   const nextBtn = document.getElementById("nextBtn");
   nextBtn.innerText =
-    currentVal===undefined ?
+    currentVal===null || currentVal===undefined ?
     "مطمئن نیستم / سؤال بعدی" :
     "سؤال بعدی";
 
@@ -205,9 +171,7 @@ function renderQuestion(){
       const chip=document.createElement("div");
       chip.className="chip";
       chip.innerText=val;
-      if(currentVal===val)
-        chip.classList.add("selected");
-
+      if(currentVal===val) chip.classList.add("selected");
       chip.onclick=()=>{
         selectedAnswers[key]=val;
         updateURL();
@@ -219,29 +183,17 @@ function renderQuestion(){
   }
 
   if(feature.type==="numeric"){
-    const value=currentVal ?? 0.5;
-
+    const value=currentVal ?? null;
     const slider=document.createElement("input");
-    slider.type="range";
-    slider.min=0;slider.max=1;slider.step=0.1;
-    slider.value=value;
-
+    slider.type="range"; slider.min=0; slider.max=1; slider.step=0.1;
+    slider.value=value??0.5;
     const numberInput=document.createElement("input");
-    numberInput.type="number";
-    numberInput.min=0;numberInput.max=1;numberInput.step=0.1;
-    numberInput.value=value;
-    numberInput.style.width="60px";
-
-    const visual=document.createElement("div");
-    visual.className="ratio-visual";
-
-    const dynamic=document.createElement("div");
-    dynamic.className="rect";
-
-    const base=document.createElement("div");
-    base.className="rect base";
-
-    dynamic.style.height=(value*100)+"%";
+    numberInput.type="number"; numberInput.min=0; numberInput.max=1; numberInput.step=0.1;
+    numberInput.value=value??0.5; numberInput.style.width="60px";
+    const visual=document.createElement("div"); visual.className="ratio-visual";
+    const dynamic=document.createElement("div"); dynamic.className="rect";
+    const base=document.createElement("div"); base.className="rect base";
+    dynamic.style.height=(value??0.5)*100+"%";
 
     function updateValue(v){
       v=Math.max(0,Math.min(1,parseFloat(v)));
@@ -251,6 +203,7 @@ function renderQuestion(){
       selectedAnswers[key]=v;
       updateURL();
       updateResults();
+      renderQuestion();
     }
 
     slider.oninput=e=>updateValue(e.target.value);
@@ -263,43 +216,29 @@ function renderQuestion(){
         const percent=(rect.bottom-ev.clientY)/rect.height;
         updateValue(percent);
       };
-      document.onmouseup=function(){
-        document.onmousemove=null;
-      };
+      document.onmouseup=function(){ document.onmousemove=null; };
     };
 
-    visual.appendChild(dynamic);
-    visual.appendChild(base);
-
+    visual.appendChild(dynamic); visual.appendChild(base);
     container.appendChild(slider);
     container.appendChild(numberInput);
     container.appendChild(visual);
   }
 }
 
-/* ---------- Navigation ---------- */
 function nextStep(){
   const key=featureKeys[currentStep];
-
-  if(selectedAnswers[key]===undefined)
-    selectedAnswers[key]=null;
-
-  if(currentStep<featureKeys.length-1){
-    currentStep++;
-    renderQuestion();
-  }
+  if(selectedAnswers[key]===undefined) selectedAnswers[key]=null;
+  if(currentStep<featureKeys.length-1) currentStep++;
   updateURL();
+  renderQuestion();
   updateResults();
 }
 
 function prevStep(){
-  if(currentStep>0){
-    currentStep--;
-    renderQuestion();
-  }
+  if(currentStep>0){ currentStep--; renderQuestion(); }
 }
 
-/* ---------- History ---------- */
 function renderHistory(){
   const box=document.getElementById("historyChips");
   box.innerHTML="";
@@ -308,10 +247,7 @@ function renderHistory(){
     const chip=document.createElement("div");
     chip.className="chip history";
     chip.innerText=
-      database.features[key].label_fa+
-      ": "+
-      (val===null?"نامشخص":val);
-
+      database.features[key].label_fa + ": " + (val===null?"نامشخص":val);
     chip.onclick=()=>{
       currentStep=featureKeys.indexOf(key);
       renderQuestion();
@@ -320,71 +256,63 @@ function renderHistory(){
   });
 }
 
-/* ---------- Scoring with Weight Detection ---------- */
-function calculateScores(){
-  return database.fonts.map(font=>{
-    let bestScore=0;
-    let bestWeight="normal";
-    const weightKeys = font.weights ? Object.keys(font.weights) : ["normal"];
-
-    weightKeys.forEach(weight=>{
-      let score=0,total=0;
-
-      featureKeys.forEach(key=>{
-        const userVal=selectedAnswers[key];
-        if(userVal===undefined || userVal===null) return;
-
-        total++;
-
-        let fontVal;
-
-        if(font.weights && font.weights[weight] &&
-           font.weights[weight][key]!==undefined){
-          fontVal=font.weights[weight][key];
-        }else{
-          fontVal=font.features[key];
-        }
-
-        if(Array.isArray(fontVal)){
-          if(fontVal.includes(userVal)) score++;
-        }else{
-          const diff=Math.abs(fontVal-userVal);
-          score+=Math.max(0,1-diff);
-        }
-      });
-
-      const percent=total?Math.round((score/total)*100):0;
-
-      if(percent>bestScore){
-        bestScore=percent;
-        bestWeight=weight;
-      }
-    });
-
-    return {font,percent:bestScore,weight:bestWeight};
-  }).sort((a,b)=>b.percent-a.percent);
-}
-
 function updateResults(){
   const resBox=document.getElementById("results");
   resBox.innerHTML="";
-  const results=calculateScores();
-
-  results.forEach((r,i)=>{
-    const div=document.createElement("div");
-    div.className="result";
-
-    if(i===0 && r.percent>0){
-      if(results[1] && r.percent-results[1].percent>=5)
-        div.classList.add("highlight");
+  const results=database.fonts.map(font=>{
+    let weightResults=[];
+    if(font.weights){
+      Object.keys(font.weights).forEach(w=>{
+        let score=0,total=0;
+        featureKeys.forEach(key=>{
+          const userVal=selectedAnswers[key];
+          if(userVal===undefined||userVal===null) return;
+          let fontVal=font.weights[w][key] ?? font.features[key];
+          if(Array.isArray(fontVal)){
+            if(fontVal.includes(userVal)) score++;
+          }else{
+            score+=Math.max(0,1-Math.abs(fontVal-userVal));
+          }
+          total++;
+        });
+        const percent=total?Math.round((score/total)*100):0;
+        if(percent>0) weightResults.push({weight:w, percent});
+      });
+    } else {
+      let score=0,total=0;
+      featureKeys.forEach(key=>{
+        const userVal=selectedAnswers[key];
+        if(userVal===undefined||userVal===null) return;
+        let fontVal=font.features[key];
+        if(Array.isArray(fontVal)){
+          if(fontVal.includes(userVal)) score++;
+        }else{
+          score+=Math.max(0,1-Math.abs(fontVal-userVal));
+        }
+        total++;
+      });
+      const percent=total?Math.round((score/total)*100):0;
+      if(percent>0) weightResults.push({weight:null, percent});
     }
+    return {font, weightResults};
+  });
 
-    div.innerHTML=
-      "<b>"+r.font.name+"</b> — "+r.percent+"% "+
-      (r.weight? "(وزن: "+r.weight+") ":"")+
-      (r.font.url?`<a href="${r.font.url}" target="_blank">[پروفایل]</a>`:"");
+  results.sort((a,b)=>{
+    const maxA=a.weightResults.reduce((m,r)=>Math.max(m,r.percent),0);
+    const maxB=b.weightResults.reduce((m,r)=>Math.max(m,r.percent),0);
+    return maxB-maxA;
+  });
 
-    resBox.appendChild(div);
+  results.forEach(r=>{
+    r.weightResults.forEach(wr=>{
+      const div=document.createElement("div");
+      div.className="result";
+      div.innerHTML=
+        "<b>"+r.font.name+"</b> — "+wr.percent+"% "+
+        (wr.weight? "(وزن: "+wr.weight+") ":"")+
+        (r.font.url?`<a href="${r.font.url}" target="_blank">[پروفایل]</a>`:"");
+      resBox.appendChild(div);
+    });
   });
 }
 </script>
