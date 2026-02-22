@@ -29,10 +29,10 @@
         "heh_initial_loop": ["باز"],
         "dot_shape": ["لوزی"],
   "weights": {
-    "normal": {
+    "regular": {
       "heh_initial_height_ratio_to_alif": 0.7
     },
-    "bold": {
+    "black": {
       "heh_initial_height_ratio_to_alif": 0.8
     }
   }
@@ -43,7 +43,14 @@
   "url": "https://fontiran.com/fonts/doran",
       "features": {
         "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.5,
+  "weights": {
+    "regular": {
+      "heh_initial_height_ratio_to_alif": 0.5
+    },
+    "black": {
+      "heh_initial_height_ratio_to_alif": 0.6
+    }
+  },
         "dot_shape": ["لوزی", "پیوسته"]
       }
     },
