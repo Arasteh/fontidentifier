@@ -41,20 +41,30 @@
         .chip.selected { background: var(--primary); color: white; }
         .chip.history { background: #e8f0ff; color: var(--primary); font-size: 11px; padding: 4px 10px; }
 
-        /* Visual Interaction for Ratios */
+        /* Generic Visual Container */
+        .visual-container {
+            margin: 20px 0;
+            background: #fdfdfd;
+            border-radius: 10px;
+            border: 1px dashed #ddd;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Ratio Visual (Bars) */
         .ratio-visual {
             display: flex;
             align-items: flex-end;
             justify-content: center;
             gap: 30px;
-            height: 160px;
-            margin: 20px 0;
-            background: #fdfdfd;
-            border-radius: 10px;
+            height: 140px;
+            width: 100%;
             position: relative;
             cursor: ns-resize;
             user-select: none;
-            border: 1px dashed #ddd;
         }
         .rect {
             width: 40px;
@@ -75,6 +85,38 @@
             white-space: nowrap;
         }
 
+        /* Contrast Visual (Circles) */
+        .contrast-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+            height: 100px;
+            width: 100%;
+        }
+        .circle-wrapper {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .circle {
+            background: var(--primary);
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        .circle.fixed { width: 60px; height: 60px; background: #ddd; }
+        .circle.dynamic { width: 60px; height: 60px; }
+
+        /* Slider */
+        .slider-box { width: 100%; max-width: 300px; }
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+        }
+
         /* Results - Ultra Compact Style */
         .result-item {
             padding: 8px 12px;
@@ -85,7 +127,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s;
         }
         .font-link {
             text-decoration: none;
@@ -95,9 +136,7 @@
             gap: 6px;
             flex-grow: 1;
         }
-        .font-link:hover .font-name {
-            color: var(--primary);
-        }
+        .font-link:hover .font-name { color: var(--primary); }
         .weight-name {
             font-size: 10px;
             color: #888;
@@ -161,7 +200,7 @@ async function init() {
         if (!response.ok) throw new Error('فایل دیتابیس یافت نشد.');
         database = await response.json();
         
-        // افزودن ویژگی کنتراست اگر در فایل دیتابیس نبود (برای اطمینان از عملکرد کد جدید)
+        // Ensure contrast feature exists
         if (!database.features.contrast) {
             database.features.contrast = {
                 "label_fa": "کنتراست ضخامت",
@@ -220,6 +259,7 @@ function renderQuestion() {
 
     const currentVal = selectedAnswers[key];
     
+    // Button state management
     if (currentStep === featureKeys.length - 1 && currentVal !== undefined) {
         nextBtn.classList.add("hidden");
     } else if (currentStep >= featureKeys.length - 1 && currentVal === undefined) {
@@ -249,49 +289,78 @@ function renderQuestion() {
 
     if (feature.type === "numeric") {
         const val = currentVal ?? 0.5;
-        const visual = document.createElement("div");
-        visual.className = "ratio-visual";
-        visual.innerHTML = `
-            <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">${Math.round(val*100)}%</span></div>
-            <div class="rect base"><span class="rect-label">۱۰۰٪</span></div>
-        `;
+        const visualWrap = document.createElement("div");
+        visualWrap.className = "visual-container";
 
-        let isDragging = false;
-        
-        const updateVisualOnly = (percent) => {
-            const rect = document.getElementById("dragRect");
-            if (rect) {
-                rect.style.height = (percent * 100) + "%";
-                rect.querySelector('.rect-label').innerText = Math.round(percent * 100) + "%";
-            }
-        };
-
-        const handleInteraction = (e) => {
-            const rect = visual.getBoundingClientRect();
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            let percent = 1 - ((clientY - rect.top) / rect.height);
-            percent = Math.max(0, Math.min(1, percent));
-            const roundedVal = Math.round(percent * 10) / 10;
+        if (key === 'contrast') {
+            // Circle Contrast Visual
+            visualWrap.innerHTML = `
+                <div class="contrast-visual">
+                    <div class="circle-wrapper"><div class="circle fixed"></div></div>
+                    <div class="circle-wrapper"><div class="circle dynamic" id="dynCircle" style="width:${60 * (1 - val*0.99)}px; height:${60 * (1 - val*0.99)}px"></div></div>
+                </div>
+                <div class="slider-box">
+                    <input type="range" min="0" max="1" step="0.01" value="${val}" id="contrastSlider">
+                    <div style="text-align:center; font-size:12px; margin-top:5px; color:#888;">کنتراست: <span id="contrastVal">${Math.round(val*100)}%</span></div>
+                </div>
+            `;
             
-            updateVisualOnly(roundedVal);
-            selectedAnswers[key] = roundedVal;
-            updateURL();
-            updateResults();
+            const slider = visualWrap.querySelector('#contrastSlider');
+            slider.addEventListener('input', (e) => {
+                const newScore = parseFloat(e.target.value);
+                const dynCircle = document.getElementById('dynCircle');
+                const scoreLabel = document.getElementById('contrastVal');
+                
+                // Update circle size (100% size at 0, ~1% size at 1.0)
+                const newSize = 60 * (1 - newScore * 0.99);
+                dynCircle.style.width = newSize + "px";
+                dynCircle.style.height = newSize + "px";
+                scoreLabel.innerText = Math.round(newScore * 100) + "%";
+                
+                selectedAnswers[key] = Math.round(newScore * 10) / 10;
+                updateURL();
+                updateResults();
+                if (nextBtn.innerText.includes("نمی‌دانم")) nextBtn.innerText = "بعدی";
+            });
+        } else {
+            // Bars Ratio Visual
+            visualWrap.innerHTML = `
+                <div class="ratio-visual" id="barVisual">
+                    <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">${Math.round(val*100)}%</span></div>
+                    <div class="rect base"><span class="rect-label">۱۰۰٪</span></div>
+                </div>
+            `;
             
-            if (nextBtn.innerText.includes("نمی‌دانم")) {
-                nextBtn.innerText = "بعدی";
-            }
-        };
+            const visual = visualWrap.querySelector('#barVisual');
+            let isDragging = false;
+            const handleInteraction = (e) => {
+                const rect = visual.getBoundingClientRect();
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                let percent = 1 - ((clientY - rect.top) / rect.height);
+                percent = Math.max(0, Math.min(1, percent));
+                const roundedVal = Math.round(percent * 10) / 10;
+                
+                const dragRect = document.getElementById("dragRect");
+                if (dragRect) {
+                    dragRect.style.height = (roundedVal * 100) + "%";
+                    dragRect.querySelector('.rect-label').innerText = Math.round(roundedVal * 100) + "%";
+                }
 
-        visual.addEventListener('mousedown', (e) => { isDragging = true; handleInteraction(e); });
-        window.addEventListener('mouseup', () => { isDragging = false; });
-        window.addEventListener('mousemove', (e) => { if (isDragging) handleInteraction(e); });
+                selectedAnswers[key] = roundedVal;
+                updateURL();
+                updateResults();
+                if (nextBtn.innerText.includes("نمی‌دانم")) nextBtn.innerText = "بعدی";
+            };
+
+            visual.addEventListener('mousedown', (e) => { isDragging = true; handleInteraction(e); });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            window.addEventListener('mousemove', (e) => { if (isDragging) handleInteraction(e); });
+            visual.addEventListener('touchstart', (e) => { isDragging = true; handleInteraction(e); }, {passive: false});
+            window.addEventListener('touchend', () => { isDragging = false; });
+            window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); handleInteraction(e); } }, {passive: false});
+        }
         
-        visual.addEventListener('touchstart', (e) => { isDragging = true; handleInteraction(e); }, {passive: false});
-        window.addEventListener('touchend', () => { isDragging = false; });
-        window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); handleInteraction(e); } }, {passive: false});
-
-        container.appendChild(visual);
+        container.appendChild(visualWrap);
     }
 }
 
@@ -380,8 +449,6 @@ function updateResults() {
     finalFlatResults.forEach(res => {
         const div = document.createElement("div");
         div.className = "result-item";
-        
-        // منطق نمایش بصری براساس امتیاز: امتیاز بالاتر = درشت‌تر و ضخیم‌تر
         const fontSize = 13 + (res.score * 4);
         const fontWeight = 400 + Math.round(res.score * 500);
 
