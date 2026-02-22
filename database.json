@@ -10,6 +10,10 @@
       "label_fa": "نسبت ارتفاع ح اول به الف",
       "type": "numeric"
     },
+    "contrast": {
+      "label_fa": "کنتراست ضخامت",
+      "type": "numeric"
+    },
     "dot_shape": {
       "label_fa": "شکل نقطه‌ها",
       "type": "categorical",
@@ -26,10 +30,12 @@
   },
   "weights": {
     "regular": {
-      "heh_initial_height_ratio_to_alif": 0.7
+      "heh_initial_height_ratio_to_alif": 0.7,
+        "contrast": 0.1
     },
     "black": {
-      "heh_initial_height_ratio_to_alif": 0.8
+      "heh_initial_height_ratio_to_alif": 0.8,
+        "contrast": 0.2
     }
   }
 },
@@ -42,10 +48,12 @@
       },
   "weights": {
     "regular": {
-      "heh_initial_height_ratio_to_alif": 0.5
+      "heh_initial_height_ratio_to_alif": 0.5,
+        "contrast": 0.8
     },
     "black": {
-      "heh_initial_height_ratio_to_alif": 0.6
+      "heh_initial_height_ratio_to_alif": 0.6,
+        "contrast": 1
     }
   }
     },
@@ -55,7 +63,8 @@
       "features": {
         "heh_initial_loop": ["بسته"],
         "heh_initial_height_ratio_to_alif": 0.3,
-        "dot_shape": ["لوزی"]
+        "dot_shape": ["لوزی"],
+        "contrast": 0.8
       }
     },
     {
@@ -64,7 +73,8 @@
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["لوزی"]
+        "dot_shape": ["لوزی"],
+        "contrast": 0.1
       }
     },
     {
@@ -73,7 +83,8 @@
       "features": {
         "heh_initial_loop": ["بسته"],
         "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["دایره"]
+        "dot_shape": ["دایره"],
+        "contrast": 0
       }
     },
     {
@@ -82,7 +93,8 @@
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["لوزی", "مربع"]
+        "dot_shape": ["لوزی", "مربع"],
+        "contrast": 0.1
       }
     },
     {
@@ -91,7 +103,8 @@
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["لوزی"]
+        "dot_shape": ["لوزی"],
+        "contrast": 0
       }
     },
     {
@@ -100,7 +113,8 @@
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.6,
-        "dot_shape": ["دایره", "پیوسته"]
+        "dot_shape": ["دایره", "پیوسته"],
+        "contrast": 0
       }
     },
     {
@@ -109,7 +123,8 @@
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.7,
-        "dot_shape": ["مربع", "پیوسته"]
+        "dot_shape": ["مربع", "پیوسته"],
+        "contrast": 0.8
       }
     },
     {
@@ -118,7 +133,8 @@
       "features": {
         "heh_initial_loop": ["باز","بسته"],
         "heh_initial_height_ratio_to_alif": 0.4,
-        "dot_shape": ["لوزی"]
+        "dot_shape": ["لوزی"],
+        "contrast": 0.5
       }
     }
   ]
