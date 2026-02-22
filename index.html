@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>Persian Font Identifier – Smart Engine</title>
+<meta charset="UTF-8">
+<title>Font Finder – Stable Version</title>
 
 <style>
 body{
-  font-family: system-ui, sans-serif;
+  font-family:system-ui,sans-serif;
   max-width:1000px;
   margin:40px auto;
   background:#f4f4f4;
@@ -22,7 +22,7 @@ body{
 button{
   padding:8px 16px;
   cursor:pointer;
-  margin-left:5px;
+  margin-left:6px;
 }
 
 .progress{
@@ -36,7 +36,7 @@ button{
   background:#4a78ff;
   width:0%;
   border-radius:4px;
-  transition:0.4s;
+  transition:0.3s;
 }
 
 .chip{
@@ -47,9 +47,7 @@ button{
   border-radius:20px;
   cursor:pointer;
   font-size:13px;
-  transition:0.2s;
 }
-.chip:hover{background:#dce4ff;}
 .chip.selected{
   background:#4a78ff;
   color:white;
@@ -89,12 +87,18 @@ button{
 </head>
 <body>
 
-<h1>Font Finder – Smart Decision Engine</h1>
+<h1>Font Finder</h1>
 
 <div class="card">
 <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
 <div id="historyChips"></div>
 <div id="questionContainer"></div>
+
+<div style="margin-top:15px;">
+<button onclick="prevStep()">قبلی</button>
+<button onclick="nextStep()">بعدی</button>
+</div>
 </div>
 
 <div class="card">
@@ -104,20 +108,21 @@ button{
 
 <script>
 let database;
+let featureKeys=[];
+let currentStep=0;
 let selectedAnswers={};
-let askedFeatures=[];
-let currentFeature=null;
 
 fetch('database.json')
 .then(r=>r.json())
 .then(data=>{
   database=data;
+  featureKeys=Object.keys(database.features);
   loadFromURL();
-  nextBestQuestion();
+  renderQuestion();
   updateResults();
 });
 
-/* --------- URL --------- */
+/* ---------- URL ---------- */
 function updateURL(){
   const params=new URLSearchParams(selectedAnswers);
   history.replaceState(null,"","?"+params.toString());
@@ -125,68 +130,18 @@ function updateURL(){
 function loadFromURL(){
   const params=new URLSearchParams(window.location.search);
   params.forEach((v,k)=>{
-    selectedAnswers[k]=v;
-    askedFeatures.push(k);
+    selectedAnswers[k]=isNaN(v)?v:parseFloat(v);
   });
 }
 
-/* --------- Smart Feature Selection --------- */
-function getRemainingFonts(){
-  return database.fonts.filter(font=>{
-    for(let key in selectedAnswers){
-      const val=selectedAnswers[key];
-      const fontVal=font.features[key];
-      if(Array.isArray(fontVal)){
-        if(!fontVal.includes(val)) return false;
-      }else{
-        if(Math.abs(fontVal-val)>0.4) return false;
-      }
-    }
-    return true;
-  });
-}
-
-function getBestFeature(){
-  const remaining=getRemainingFonts();
-  const features=Object.keys(database.features)
-    .filter(f=>!selectedAnswers[f]);
-
-  if(remaining.length<=3) return null;
-
-  let best=null;
-  let bestScore=-1;
-
-  features.forEach(f=>{
-    const values=remaining.map(font=>font.features[f]);
-    const unique=new Set(values.map(v=>Array.isArray(v)?v[0]:v));
-    const score=unique.size;
-    if(score>bestScore){
-      bestScore=score;
-      best=f;
-    }
-  });
-
-  return best;
-}
-
-function nextBestQuestion(){
-  currentFeature=getBestFeature();
-  renderQuestion();
-  updateProgress();
-}
-
-/* --------- UI --------- */
+/* ---------- Question ---------- */
 function renderQuestion(){
+  const key=featureKeys[currentStep];
+  const feature=database.features[key];
   const container=document.getElementById("questionContainer");
   container.innerHTML="";
   renderHistory();
 
-  if(!currentFeature){
-    container.innerHTML="<b>نتیجه تقریباً مشخص شده است.</b>";
-    return;
-  }
-
-  const feature=database.features[currentFeature];
   container.innerHTML+="<label>"+feature.label_fa+"</label><br/>";
 
   if(feature.type==="categorical"){
@@ -194,11 +149,13 @@ function renderQuestion(){
       const chip=document.createElement("div");
       chip.className="chip";
       chip.innerText=val;
+      if(selectedAnswers[key]===val)
+        chip.classList.add("selected");
+
       chip.onclick=()=>{
-        selectedAnswers[currentFeature]=val;
-        askedFeatures.push(currentFeature);
+        selectedAnswers[key]=val;
         updateURL();
-        nextBestQuestion();
+        renderQuestion();
         updateResults();
       };
       container.appendChild(chip);
@@ -209,7 +166,7 @@ function renderQuestion(){
     const input=document.createElement("input");
     input.type="range";
     input.min=0;input.max=1;input.step=0.1;
-    input.value=0.5;
+    input.value=selectedAnswers[key]??0.5;
 
     const label=document.createElement("div");
     label.innerText=input.value;
@@ -218,18 +175,18 @@ function renderQuestion(){
     visual.className="ratio-visual";
 
     const dynamic=document.createElement("div");
-    dynamic.className="rect";   // 🔥 الان سمت چپ
+    dynamic.className="rect";   // 🔥 پویا سمت چپ
 
     const base=document.createElement("div");
     base.className="rect base";
 
     dynamic.style.height=(input.value*100)+"%";
 
-    visual.appendChild(dynamic); // swapped
+    visual.appendChild(dynamic);
     visual.appendChild(base);
 
     input.oninput=()=>{
-      selectedAnswers[currentFeature]=parseFloat(input.value);
+      selectedAnswers[key]=parseFloat(input.value);
       label.innerText=input.value;
       dynamic.style.height=(input.value*100)+"%";
       updateURL();
@@ -240,8 +197,25 @@ function renderQuestion(){
     container.appendChild(label);
     container.appendChild(visual);
   }
+
+  updateProgress();
 }
 
+/* ---------- Navigation ---------- */
+function nextStep(){
+  if(currentStep<featureKeys.length-1){
+    currentStep++;
+    renderQuestion();
+  }
+}
+function prevStep(){
+  if(currentStep>0){
+    currentStep--;
+    renderQuestion();
+  }
+}
+
+/* ---------- History Chips ---------- */
 function renderHistory(){
   const box=document.getElementById("historyChips");
   box.innerHTML="";
@@ -250,35 +224,56 @@ function renderHistory(){
     chip.className="chip history";
     chip.innerText=database.features[key].label_fa;
     chip.onclick=()=>{
-      currentFeature=key;
+      currentStep=featureKeys.indexOf(key);
       renderQuestion();
     };
     box.appendChild(chip);
   });
 }
 
-/* --------- Results --------- */
+/* ---------- Scoring ---------- */
+function calculateScores(){
+  return database.fonts.map(font=>{
+    let score=0,total=0;
+    featureKeys.forEach(key=>{
+      if(selectedAnswers[key]!==undefined){
+        total++;
+        const userVal=selectedAnswers[key];
+        const fontVal=font.features[key];
+
+        if(Array.isArray(fontVal)){
+          if(fontVal.includes(userVal)) score++;
+        }else{
+          const diff=Math.abs(fontVal-userVal);
+          score+=Math.max(0,1-diff);
+        }
+      }
+    });
+    const percent=total?Math.round((score/total)*100):0;
+    return {name:font.name,percent};
+  }).sort((a,b)=>b.percent-a.percent);
+}
+
 function updateResults(){
   const resBox=document.getElementById("results");
   resBox.innerHTML="";
-  const remaining=getRemainingFonts();
+  const results=calculateScores();
 
-  const sorted=remaining.map(f=>({
-    name:f.name,
-    score:100
-  }));
-
-  sorted.slice(0,3).forEach((r,i)=>{
+  results.forEach((r,i)=>{
     const div=document.createElement("div");
-    div.className="result top"+(i+1);
-    div.innerHTML="<b>"+r.name+"</b>";
+    div.className="result";
+    if(i===0) div.classList.add("top1");
+    if(i===1) div.classList.add("top2");
+    if(i===2) div.classList.add("top3");
+
+    div.innerHTML="<b>"+r.name+"</b> — "+r.percent+"%";
     resBox.appendChild(div);
   });
 }
 
-/* --------- Progress --------- */
+/* ---------- Progress ---------- */
 function updateProgress(){
-  const total=Object.keys(database.features).length;
+  const total=featureKeys.length;
   const answered=Object.keys(selectedAnswers).length;
   document.getElementById("progressBar").style.width=
     (answered/total*100)+"%";
