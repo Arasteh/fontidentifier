@@ -97,6 +97,15 @@
         "heh_initial_height_ratio_to_alif": 0.7,
         "dot_shape": ["مربع", "پیوسته"]
       }
+    },
+    {
+      "name": "پسته",
+  "url": "https://fontiran.com/fonts/pesteh",
+      "features": {
+        "heh_initial_loop": ["باز","بسته"],
+        "heh_initial_height_ratio_to_alif": 0.4,
+        "dot_shape": ["لوزی"]
+      }
     }
   ]
 }
