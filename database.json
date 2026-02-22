@@ -14,7 +14,12 @@
       "label_fa": "شکل نقطه‌ها",
       "type": "categorical",
       "values": ["دایره", "لوزی", "مربع", "پیوسته"]
-    }
+    },
+    "weight": {
+  "label_fa": "وزن فونت",
+  "type": "categorical",
+  "values": ["regular","black"]
+}
   },
   "fonts": [
     {
@@ -22,8 +27,15 @@
   "url": "https://fontiran.com/fonts/shazde",
       "features": {
         "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.7,
-        "dot_shape": ["لوزی"]
+        "dot_shape": ["لوزی"],
+  "weights": {
+    "normal": {
+      "heh_initial_height_ratio_to_alif": 0.7
+    },
+    "bold": {
+      "heh_initial_height_ratio_to_alif": 0.8
+    }
+  }
       }
     },
     {

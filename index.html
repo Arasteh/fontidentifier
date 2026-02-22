@@ -97,7 +97,7 @@ button{
 
 <div style="margin-top:15px;">
 <button onclick="prevStep()">قبلی</button>
-<button onclick="nextStep()">بعدی</button>
+<button id="nextBtn" onclick="nextStep()">مطمئن نیستم / سؤال بعدی</button>
 <button onclick="resetAll()">شروع از ابتدا</button>
 </div>
 </div>
@@ -136,6 +136,10 @@ function updateURL(){
       compressed+="x";
       return;
     }
+    if(val===null){
+      compressed+="u";
+      return;
+    }
 
     if(feature.type==="categorical"){
       compressed+=feature.values.indexOf(val);
@@ -155,9 +159,12 @@ function loadFromURL(){
   featureKeys.forEach((key,i)=>{
     const char=str[i];
     if(!char || char==="x") return;
+    if(char==="u"){
+      selectedAnswers[key]=null;
+      return;
+    }
 
     const feature=database.features[key];
-
     if(feature.type==="categorical"){
       selectedAnswers[key]=feature.values[parseInt(char)];
     }else{
@@ -183,6 +190,14 @@ function renderQuestion(){
   container.innerHTML="";
   renderHistory();
 
+  const currentVal = selectedAnswers[key];
+
+  const nextBtn = document.getElementById("nextBtn");
+  nextBtn.innerText =
+    currentVal===undefined ?
+    "مطمئن نیستم / سؤال بعدی" :
+    "سؤال بعدی";
+
   container.innerHTML+="<label>"+feature.label_fa+"</label><br/>";
 
   if(feature.type==="categorical"){
@@ -190,7 +205,7 @@ function renderQuestion(){
       const chip=document.createElement("div");
       chip.className="chip";
       chip.innerText=val;
-      if(selectedAnswers[key]===val)
+      if(currentVal===val)
         chip.classList.add("selected");
 
       chip.onclick=()=>{
@@ -204,7 +219,7 @@ function renderQuestion(){
   }
 
   if(feature.type==="numeric"){
-    const value=selectedAnswers[key]??0.5;
+    const value=currentVal ?? 0.5;
 
     const slider=document.createElement("input");
     slider.type="range";
@@ -235,13 +250,13 @@ function renderQuestion(){
       dynamic.style.height=(v*100)+"%";
       selectedAnswers[key]=v;
       updateURL();
+      renderQuestion();
       updateResults();
     }
 
     slider.oninput=e=>updateValue(e.target.value);
     numberInput.oninput=e=>updateValue(e.target.value);
 
-    /* 🔥 Drag Support */
     dynamic.onmousedown=function(e){
       e.preventDefault();
       document.onmousemove=function(ev){
@@ -265,11 +280,19 @@ function renderQuestion(){
 
 /* ---------- Navigation ---------- */
 function nextStep(){
+  const key=featureKeys[currentStep];
+
+  if(selectedAnswers[key]===undefined)
+    selectedAnswers[key]=null;
+
   if(currentStep<featureKeys.length-1){
     currentStep++;
     renderQuestion();
   }
+  updateURL();
+  updateResults();
 }
+
 function prevStep(){
   if(currentStep>0){
     currentStep--;
@@ -282,11 +305,13 @@ function renderHistory(){
   const box=document.getElementById("historyChips");
   box.innerHTML="";
   Object.keys(selectedAnswers).forEach(key=>{
+    const val=selectedAnswers[key];
     const chip=document.createElement("div");
     chip.className="chip history";
     chip.innerText=
       database.features[key].label_fa+
-      ": "+selectedAnswers[key];
+      ": "+
+      (val===null?"نامشخص":val);
 
     chip.onclick=()=>{
       currentStep=featureKeys.indexOf(key);
@@ -296,15 +321,30 @@ function renderHistory(){
   });
 }
 
-/* ---------- Scoring ---------- */
+/* ---------- Scoring with Weight Detection ---------- */
 function calculateScores(){
   return database.fonts.map(font=>{
-    let score=0,total=0;
-    featureKeys.forEach(key=>{
-      if(selectedAnswers[key]!==undefined){
-        total++;
+    let bestScore=0;
+    let bestWeight="normal";
+    const weightKeys = font.weights ? Object.keys(font.weights) : ["normal"];
+
+    weightKeys.forEach(weight=>{
+      let score=0,total=0;
+
+      featureKeys.forEach(key=>{
         const userVal=selectedAnswers[key];
-        const fontVal=font.features[key];
+        if(userVal===undefined || userVal===null) return;
+
+        total++;
+
+        let fontVal;
+
+        if(font.weights && font.weights[weight] &&
+           font.weights[weight][key]!==undefined){
+          fontVal=font.weights[weight][key];
+        }else{
+          fontVal=font.features[key];
+        }
 
         if(Array.isArray(fontVal)){
           if(fontVal.includes(userVal)) score++;
@@ -312,10 +352,17 @@ function calculateScores(){
           const diff=Math.abs(fontVal-userVal);
           score+=Math.max(0,1-diff);
         }
+      });
+
+      const percent=total?Math.round((score/total)*100):0;
+
+      if(percent>bestScore){
+        bestScore=percent;
+        bestWeight=weight;
       }
     });
-    const percent=total?Math.round((score/total)*100):0;
-    return {font,percent};
+
+    return {font,percent:bestScore,weight:bestWeight};
   }).sort((a,b)=>b.percent-a.percent);
 }
 
@@ -335,6 +382,7 @@ function updateResults(){
 
     div.innerHTML=
       "<b>"+r.font.name+"</b> — "+r.percent+"% "+
+      (r.weight? "(وزن: "+r.weight+") ":"")+
       (r.font.url?`<a href="${r.font.url}" target="_blank">[پروفایل]</a>`:"");
 
     resBox.appendChild(div);
