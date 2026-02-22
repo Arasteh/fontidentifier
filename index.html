@@ -10,6 +10,7 @@
             --bg: #f8f9fa;
             --card: #ffffff;
             --text: #333;
+            --border: #edf0f5;
         }
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -19,93 +20,83 @@
             color: var(--text);
             line-height: 1.6;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .layout { display: grid; grid-template-columns: 1fr 420px; gap: 30px; }
-        .card { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: fit-content; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); height: fit-content; }
         
-        h1 { color: var(--primary); margin-bottom: 30px; text-align: center; }
+        h1 { color: var(--primary); margin-bottom: 25px; text-align: center; font-size: 24px; }
+        h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
         
         /* Chips */
         .chip {
             display: inline-block;
-            padding: 10px 18px;
-            margin: 6px;
+            padding: 8px 16px;
+            margin: 4px;
             background: #f0f0f0;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 14px;
-            border: 2px solid transparent;
+            font-size: 13px;
         }
-        .chip:hover { background: #e8e8e8; }
-        .chip.selected { background: var(--primary); color: white; border-color: #3561e6; }
-        .chip.history { background: #e8f0ff; color: var(--primary); font-size: 12px; padding: 6px 12px; }
+        .chip.selected { background: var(--primary); color: white; }
+        .chip.history { background: #e8f0ff; color: var(--primary); font-size: 11px; padding: 4px 10px; }
 
         /* Visual Interaction */
         .ratio-visual {
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            gap: 50px;
-            height: 220px;
-            margin: 25px 0;
+            gap: 30px;
+            height: 180px;
+            margin: 20px 0;
             background: #fdfdfd;
-            border-radius: 15px;
+            border-radius: 10px;
             position: relative;
             cursor: ns-resize;
             user-select: none;
-            border: 2px dashed #e0e0e0;
+            border: 1px dashed #ddd;
         }
         .rect {
-            width: 70px;
+            width: 50px;
             background: var(--primary);
-            border-radius: 6px 6px 0 0;
+            border-radius: 4px 4px 0 0;
             position: relative;
-            transition: height 0.15s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            box-shadow: 0 -4px 10px rgba(74, 120, 255, 0.2);
+            transition: height 0.1s ease;
         }
-        .rect.base { background: #ccc; height: 100%; border-radius: 6px; box-shadow: none; }
+        .rect.base { background: #ddd; height: 100%; border-radius: 4px; }
         .rect-label {
             position: absolute;
-            top: -30px;
+            top: -25px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 13px;
+            font-size: 11px;
             font-weight: bold;
             white-space: nowrap;
         }
 
-        /* Results */
+        /* Results - Compact Style */
         .result-item {
-            padding: 18px;
-            margin-bottom: 15px;
-            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
             background: #fff;
-            border: 1px solid #eee;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .result-item:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-color: var(--primary); }
-        .font-name { font-size: 19px; font-weight: 800; display: block; margin-bottom: 10px; color: #222; }
-        .weight-tag {
-            display: inline-block;
-            font-size: 11px;
-            padding: 3px 10px;
-            background: #f0f4ff;
-            border-radius: 6px;
-            margin-left: 6px;
-            margin-bottom: 4px;
-            border: 1px solid #d0dfff;
-            color: #444;
-        }
-        .match-percent { float: left; color: var(--primary); font-size: 22px; font-weight: 900; }
-        .profile-link { font-size: 12px; color: var(--primary); text-decoration: none; display: inline-block; margin-top: 10px; }
-        .profile-link:hover { text-decoration: underline; }
+        .result-main { flex-grow: 1; }
+        .font-info { display: flex; align-items: baseline; gap: 8px; }
+        .font-name { font-size: 15px; font-weight: bold; color: #222; }
+        .weight-name { font-size: 12px; color: #666; background: #f0f0f0; padding: 1px 6px; border-radius: 4px; }
+        .match-score { font-size: 18px; font-weight: 900; color: var(--primary); margin-left: 12px; }
+        .profile-link { font-size: 11px; color: var(--primary); text-decoration: none; border: 1px solid var(--primary); padding: 2px 8px; border-radius: 4px; }
+        .profile-link:hover { background: var(--primary); color: white; }
 
-        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        button { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; background: #eee; font-family: inherit; font-weight: bold; transition: 0.2s; }
-        button:hover { background: #e2e2e2; }
+        .controls { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border); }
+        button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; background: #eee; font-family: inherit; font-size: 13px; transition: 0.2s; }
         button#nextBtn { background: var(--primary); color: white; }
-        button#nextBtn:hover { background: #3561e6; }
+        .hidden { display: none; }
 
         @media(max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     </style>
@@ -113,74 +104,58 @@
 <body>
 
 <div class="container">
-    <h1>جستجوگر تخصصی فونت فارسی</h1>
+    <h1>جستجوگر فونت</h1>
 
     <div class="layout">
         <div class="card">
-            <div id="historyChips" style="margin-bottom: 20px;"></div>
-            <div id="questionContainer"></div>
+            <div id="historyChips" style="margin-bottom: 15px;"></div>
+            <div id="questionContainer">
+                <p style="text-align:center; color:#888;">در حال بارگذاری داده‌ها...</p>
+            </div>
 
             <div class="controls">
                 <div>
                     <button onclick="prevStep()">قبلی</button>
-                    <button id="nextBtn" onclick="nextStep()">سؤال بعدی</button>
+                    <button id="nextBtn" onclick="nextStep()">نمی‌دانم / بعدی</button>
                 </div>
-                <button onclick="resetAll()" style="background: #fff; color: #999; border: 1px solid #eee;">پاک کردن</button>
+                <button onclick="resetAll()" style="color: #888; background: transparent;">شروع از نو</button>
             </div>
         </div>
 
         <div class="card">
-            <h3>نتایج بر اساس شباهت</h3>
+            <h3>نتایج تطبیق یافته</h3>
             <div id="results"></div>
         </div>
     </div>
 </div>
 
 <script>
-// دیتابیس دقیق بر اساس ورودی شما
-const database = {
-  "version": "0.1",
-  "features": {
-    "heh_initial_loop": {
-      "label_fa": "حلقه ح اول (چشمی ح)",
-      "type": "categorical",
-      "values": ["باز", "بسته"]
-    },
-    "heh_initial_height_ratio_to_alif": {
-      "label_fa": "نسبت ارتفاع ح اول به الف",
-      "type": "numeric"
-    },
-    "dot_shape": {
-      "label_fa": "شکل نقطه‌ها",
-      "type": "categorical",
-      "values": ["دایره", "لوزی", "مربع", "پیوسته"]
-    }
-  },
-  "fonts": [
-    { "name": "شازده", "url": "https://fontiran.com/fonts/shazde", "features": { "heh_initial_loop": ["باز"], "dot_shape": ["لوزی"] }, "weights": { "regular": { "heh_initial_height_ratio_to_alif": 0.7 }, "black": { "heh_initial_height_ratio_to_alif": 0.8 } } },
-    { "name": "دوران", "url": "https://fontiran.com/fonts/doran", "features": { "heh_initial_loop": ["باز"], "dot_shape": ["لوزی", "پیوسته"] }, "weights": { "regular": { "heh_initial_height_ratio_to_alif": 0.5 }, "black": { "heh_initial_height_ratio_to_alif": 0.6 } } },
-    { "name": "مصحفی", "url": "https://www.diwan.com/index.php/products/fonts/35-mishafi-with-quran-glossary", "features": { "heh_initial_loop": ["بسته"], "heh_initial_height_ratio_to_alif": 0.3, "dot_shape": ["لوزی"] } },
-    { "name": "انجمن", "url": "https://fontiran.com/fonts/anjoman", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["لوزی"] } },
-    { "name": "فرزاد", "url": "https://maryamsoft.com/FontShop/font.aspx?name=Farzad", "features": { "heh_initial_loop": ["بسته"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["دایره"] } },
-    { "name": "ردیف", "url": "https://maryamsoft.com/FontShop/font.aspx?name=Radif", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["لوزی", "مربع"] } },
-    { "name": "استعداد", "url": "https://aminabedi68.github.io/Estedad/", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["لوزی"] } },
-    { "name": "میخک", "url": "https://aminabedi68.github.io/Mikhak/", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.6, "dot_shape": ["دایره", "پیوسته"] } },
-    { "name": "ماد", "url": "https://fontiran.com/fonts/mad", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.7, "dot_shape": ["مربع", "پیوسته"] } },
-    { "name": "پسته", "url": "https://fontiran.com/fonts/pesteh", "features": { "heh_initial_loop": ["باز","بسته"], "heh_initial_height_ratio_to_alif": 0.4, "dot_shape": ["لوزی"] } }
-  ]
-};
-
-let featureKeys = Object.keys(database.features);
+// متغیر سراسری برای ذخیره داده‌ها پس از بارگذاری از فایل خارجی
+let database = null;
+let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
 
-function init() {
-    loadFromURL();
-    renderQuestion();
-    updateResults();
+async function init() {
+    try {
+        // بارگذاری دیتابیس از فایل خارجی
+        const response = await fetch('database.json');
+        if (!response.ok) throw new Error('فایل دیتابیس یافت نشد.');
+        database = await response.json();
+        
+        featureKeys = Object.keys(database.features);
+        loadFromURL();
+        renderQuestion();
+        updateResults();
+    } catch (error) {
+        console.error('Error loading database:', error);
+        document.getElementById("questionContainer").innerHTML = 
+            `<p style="color:red; text-align:center;">خطا در بارگذاری دیتابیس. لطفا فایل database.json را بررسی کنید.</p>`;
+    }
 }
 
 function updateURL() {
+    if (!database) return;
     let compressed = "";
     featureKeys.forEach(key => {
         const val = selectedAnswers[key];
@@ -193,6 +168,7 @@ function updateURL() {
 }
 
 function loadFromURL() {
+    if (!database) return;
     const params = new URLSearchParams(location.search);
     const str = params.get("f");
     if (!str) return;
@@ -207,14 +183,26 @@ function loadFromURL() {
 }
 
 function renderQuestion() {
+    if (!database) return;
     const key = featureKeys[currentStep];
     const feature = database.features[key];
     const container = document.getElementById("questionContainer");
-    container.innerHTML = `<h2 style="margin-top:0">${feature.label_fa}</h2>`;
+    const nextBtn = document.getElementById("nextBtn");
+    
+    container.innerHTML = `<h4 style="margin:0 0 15px 0; color:#555;">${feature.label_fa}</h4>`;
     renderHistory();
 
     const currentVal = selectedAnswers[key];
-    document.getElementById("nextBtn").innerText = (currentVal == null) ? "نمی‌دانم / بعدی" : "تایید و بعدی";
+    
+    if (currentStep === featureKeys.length - 1 && currentVal !== undefined) {
+        nextBtn.classList.add("hidden");
+    } else if (currentStep >= featureKeys.length - 1 && currentVal === undefined) {
+        nextBtn.classList.remove("hidden");
+        nextBtn.innerText = "پایان سوالات";
+    } else {
+        nextBtn.classList.remove("hidden");
+        nextBtn.innerText = (currentVal == null) ? "نمی‌دانم / بعدی" : "بعدی";
+    }
 
     if (feature.type === "categorical") {
         const chipContainer = document.createElement("div");
@@ -222,7 +210,12 @@ function renderQuestion() {
             const chip = document.createElement("div");
             chip.className = `chip ${currentVal === val ? 'selected' : ''}`;
             chip.innerText = val;
-            chip.onclick = () => { selectedAnswers[key] = val; updateURL(); renderQuestion(); updateResults(); };
+            chip.onclick = () => { 
+                selectedAnswers[key] = val; 
+                updateURL(); 
+                renderQuestion(); 
+                updateResults(); 
+            };
             chipContainer.appendChild(chip);
         });
         container.appendChild(chipContainer);
@@ -230,15 +223,13 @@ function renderQuestion() {
 
     if (feature.type === "numeric") {
         const val = currentVal ?? 0.5;
-        
         const visual = document.createElement("div");
         visual.className = "ratio-visual";
         visual.innerHTML = `
-            <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">ح اول: ${Math.round(val*100)}%</span></div>
-            <div class="rect base"><span class="rect-label">الف: ۱۰۰٪</span></div>
+            <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">${Math.round(val*100)}%</span></div>
+            <div class="rect base"><span class="rect-label">۱۰۰٪</span></div>
         `;
 
-        // اصلاح منطق درگ
         let isDragging = false;
         const updateFromEvent = (e) => {
             const rect = visual.getBoundingClientRect();
@@ -255,19 +246,11 @@ function renderQuestion() {
         visual.addEventListener('mousedown', startDrag);
         window.addEventListener('mouseup', stopDrag);
         window.addEventListener('mousemove', doDrag);
-        
         visual.addEventListener('touchstart', startDrag, {passive: false});
         window.addEventListener('touchend', stopDrag);
         window.addEventListener('touchmove', doDrag, {passive: false});
 
         container.appendChild(visual);
-        
-        const info = document.createElement("p");
-        info.style.fontSize = "13px";
-        info.style.textAlign = "center";
-        info.style.color = "#666";
-        info.innerText = "برای تغییر نسبت، مستطیل آبی را به بالا یا پایین بکشید.";
-        container.appendChild(info);
     }
 }
 
@@ -276,16 +259,22 @@ function updateNumericValue(key, val) {
     const rect = document.getElementById("dragRect");
     if (rect) {
         rect.style.height = (val * 100) + "%";
-        rect.querySelector('.rect-label').innerText = "ح اول: " + Math.round(val * 100) + "%";
+        rect.querySelector('.rect-label').innerText = Math.round(val * 100) + "%";
     }
     updateURL();
+    renderQuestion(); 
     updateResults();
 }
 
 function nextStep() {
     if (currentStep < featureKeys.length - 1) {
-        if (selectedAnswers[featureKeys[currentStep]] === undefined) selectedAnswers[featureKeys[currentStep]] = null;
+        const key = featureKeys[currentStep];
+        if (selectedAnswers[key] === undefined) selectedAnswers[key] = null;
         currentStep++;
+        renderQuestion();
+    } else {
+        const key = featureKeys[currentStep];
+        if (selectedAnswers[key] === undefined) selectedAnswers[key] = null;
         renderQuestion();
     }
 }
@@ -295,42 +284,38 @@ function prevStep() {
 }
 
 function renderHistory() {
+    if (!database) return;
     const box = document.getElementById("historyChips");
     box.innerHTML = "";
     Object.keys(selectedAnswers).forEach(key => {
         const val = selectedAnswers[key];
         const chip = document.createElement("div");
         chip.className = "chip history";
-        chip.innerText = `${database.features[key].label_fa}: ${val === null ? 'نامشخص' : val}`;
+        chip.innerText = `${database.features[key].label_fa}: ${val === null ? '؟' : val}`;
         chip.onclick = () => { currentStep = featureKeys.indexOf(key); renderQuestion(); };
         box.appendChild(chip);
     });
 }
 
 function updateResults() {
+    if (!database) return;
     const resBox = document.getElementById("results");
     resBox.innerHTML = "";
 
-    const scoredFonts = database.fonts.map(font => {
-        let bestScore = 0;
-        let matchedWeights = [];
+    let finalFlatResults = [];
 
-        // تابع امتیازدهی برای هر حالت (وزن یا فونت کلی)
+    database.fonts.forEach(font => {
         const calculateScore = (data) => {
             let score = 0, total = 0;
             featureKeys.forEach(key => {
                 const userVal = selectedAnswers[key];
                 if (userVal == null) return;
-                
-                // مقدار فونت یا در دیتای وزن است یا در دیتای کلی فونت
                 let fontVal = data[key] ?? font.features[key];
                 if (fontVal === undefined) return;
 
                 if (Array.isArray(fontVal)) {
-                    // در categorical ممکن است فونت چند مقدار را پشتیبانی کند
                     score += fontVal.includes(userVal) ? 1 : 0;
                 } else if (typeof fontVal === 'number') {
-                    // محاسبه فاصله برای اعداد
                     score += Math.max(0, 1 - Math.abs(fontVal - userVal));
                 } else {
                     score += (fontVal === userVal) ? 1 : 0;
@@ -343,32 +328,33 @@ function updateResults() {
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
                 const s = calculateScore(font.weights[wName]);
-                if (s > 0) matchedWeights.push({ name: wName, score: Math.round(s * 100) });
-                if (s > bestScore) bestScore = s;
+                if (s > 0) finalFlatResults.push({ name: font.name, url: font.url, weight: wName, score: s });
             });
         } else {
-            bestScore = calculateScore(font.features);
-            if (bestScore > 0) matchedWeights.push({ name: 'استاندارد', score: Math.round(bestScore * 100) });
+            const s = calculateScore(font.features);
+            if (s > 0) finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
         }
+    });
 
-        return { ...font, bestScore, matchedWeights };
-    }).filter(f => f.bestScore > 0).sort((a, b) => b.bestScore - a.bestScore);
+    finalFlatResults.sort((a, b) => b.score - a.score);
 
-    if (scoredFonts.length === 0) {
-        resBox.innerHTML = "<p style='color:#999; text-align:center'>هنوز موردی یافت نشد. به سوالات پاسخ دهید.</p>";
+    if (finalFlatResults.length === 0) {
+        resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>منتظر پاسخ‌های شما...</p>";
         return;
     }
 
-    scoredFonts.forEach(f => {
+    finalFlatResults.forEach(res => {
         const div = document.createElement("div");
         div.className = "result-item";
         div.innerHTML = `
-            <span class="match-percent">${Math.round(f.bestScore * 100)}%</span>
-            <span class="font-name">${f.name}</span>
-            <div style="margin-bottom:5px">
-                ${f.matchedWeights.map(w => `<span class="weight-tag">${w.name} (${w.score}%)</span>`).join('')}
+            <div class="result-main">
+                <div class="font-info">
+                    <span class="font-name">${res.name}</span>
+                    ${res.weight ? `<span class="weight-name">${res.weight}</span>` : ''}
+                </div>
+                ${res.url ? `<a href="${res.url}" target="_blank" class="profile-link">لینک</a>` : ''}
             </div>
-            ${f.url ? `<a href="${f.url}" target="_blank" class="profile-link">مشاهده و خرید فونت ←</a>` : ''}
+            <span class="match-score">${Math.round(res.score * 100)}%</span>
         `;
         resBox.appendChild(div);
     });
@@ -382,9 +368,8 @@ function resetAll() {
     updateResults();
 }
 
-// شروع برنامه
+// اجرای تابع شروع
 init();
-
 </script>
 </body>
 </html>
