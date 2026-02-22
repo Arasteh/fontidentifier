@@ -1,309 +1,390 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>Font Finder Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Finder Pro | جستجوگر پیشرفته فونت</title>
+    <style>
+        :root {
+            --primary: #4a78ff;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #333;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .layout { display: grid; grid-template-columns: 1fr 420px; gap: 30px; }
+        .card { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: fit-content; }
+        
+        h1 { color: var(--primary); margin-bottom: 30px; text-align: center; }
+        
+        /* Chips */
+        .chip {
+            display: inline-block;
+            padding: 10px 18px;
+            margin: 6px;
+            background: #f0f0f0;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            border: 2px solid transparent;
+        }
+        .chip:hover { background: #e8e8e8; }
+        .chip.selected { background: var(--primary); color: white; border-color: #3561e6; }
+        .chip.history { background: #e8f0ff; color: var(--primary); font-size: 12px; padding: 6px 12px; }
 
-<style>
-body{
-  font-family:system-ui,sans-serif;
-  margin:40px;
-  background:#f4f4f4;
-}
-.layout{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:30px;
-}
-.card{
-  background:white;
-  padding:20px;
-  border-radius:14px;
-}
-button{
-  padding:8px 16px;
-  cursor:pointer;
-  margin-left:6px;
-}
-.chip{
-  display:inline-block;
-  padding:6px 14px;
-  margin:4px;
-  background:#eee;
-  border-radius:20px;
-  cursor:pointer;
-  font-size:13px;
-}
-.chip.selected{
-  background:#4a78ff;
-  color:white;
-}
-.chip.history{
-  background:#d4e3ff;
-}
-.result{
-  padding:8px;
-  margin-bottom:6px;
-  border-radius:6px;
-  background:#e8f0ff;
-}
-.result.highlight{
-  border:2px solid #4a78ff;
-  background:#cfe0ff;
-}
-.ratio-visual{
-  display:flex;
-  align-items:flex-end;
-  gap:20px;
-  height:160px;
-  margin-top:15px;
-  position:relative;
-}
-.rect{
-  width:50px;
-  background:#4a78ff;
-  transition:0.2s;
-}
-.rect.base{
-  background:#ccc;
-  height:100%;
-}
-@media(max-width:900px){
-  .layout{
-    grid-template-columns:1fr;
-  }
-}
-</style>
+        /* Visual Interaction */
+        .ratio-visual {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 50px;
+            height: 220px;
+            margin: 25px 0;
+            background: #fdfdfd;
+            border-radius: 15px;
+            position: relative;
+            cursor: ns-resize;
+            user-select: none;
+            border: 2px dashed #e0e0e0;
+        }
+        .rect {
+            width: 70px;
+            background: var(--primary);
+            border-radius: 6px 6px 0 0;
+            position: relative;
+            transition: height 0.15s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            box-shadow: 0 -4px 10px rgba(74, 120, 255, 0.2);
+        }
+        .rect.base { background: #ccc; height: 100%; border-radius: 6px; box-shadow: none; }
+        .rect-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Results */
+        .result-item {
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .result-item:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-color: var(--primary); }
+        .font-name { font-size: 19px; font-weight: 800; display: block; margin-bottom: 10px; color: #222; }
+        .weight-tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 3px 10px;
+            background: #f0f4ff;
+            border-radius: 6px;
+            margin-left: 6px;
+            margin-bottom: 4px;
+            border: 1px solid #d0dfff;
+            color: #444;
+        }
+        .match-percent { float: left; color: var(--primary); font-size: 22px; font-weight: 900; }
+        .profile-link { font-size: 12px; color: var(--primary); text-decoration: none; display: inline-block; margin-top: 10px; }
+        .profile-link:hover { text-decoration: underline; }
+
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        button { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; background: #eee; font-family: inherit; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #e2e2e2; }
+        button#nextBtn { background: var(--primary); color: white; }
+        button#nextBtn:hover { background: #3561e6; }
+
+        @media(max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
 
-<h1>Font Finder</h1>
+<div class="container">
+    <h1>جستجوگر تخصصی فونت فارسی</h1>
 
-<div class="layout">
-<div class="card">
-<div id="historyChips"></div>
-<div id="questionContainer"></div>
+    <div class="layout">
+        <div class="card">
+            <div id="historyChips" style="margin-bottom: 20px;"></div>
+            <div id="questionContainer"></div>
 
-<div style="margin-top:15px;">
-<button onclick="prevStep()">قبلی</button>
-<button id="nextBtn" onclick="nextStep()">مطمئن نیستم / سؤال بعدی</button>
-<button onclick="resetAll()">شروع از ابتدا</button>
-</div>
-</div>
+            <div class="controls">
+                <div>
+                    <button onclick="prevStep()">قبلی</button>
+                    <button id="nextBtn" onclick="nextStep()">سؤال بعدی</button>
+                </div>
+                <button onclick="resetAll()" style="background: #fff; color: #999; border: 1px solid #eee;">پاک کردن</button>
+            </div>
+        </div>
 
-<div class="card">
-<h3>نتایج</h3>
-<div id="results"></div>
-</div>
+        <div class="card">
+            <h3>نتایج بر اساس شباهت</h3>
+            <div id="results"></div>
+        </div>
+    </div>
 </div>
 
 <script>
-let database;
-let featureKeys=[];
-let currentStep=0;
-let selectedAnswers={};
-
-fetch('database.json')
-.then(r=>r.json())
-.then(data=>{
-  database=data;
-  featureKeys=Object.keys(database.features);
-  loadFromURL();
-  renderQuestion();
-  updateResults();
-});
-
-function updateURL(){
-  let compressed="";
-  featureKeys.forEach(key=>{
-    const feature=database.features[key];
-    const val=selectedAnswers[key];
-    if(val===undefined) compressed+="x";
-    else if(val===null) compressed+="u";
-    else if(feature.type==="categorical") compressed+=feature.values.indexOf(val);
-    else compressed+=Math.round(val*10);
-  });
-  history.replaceState(null,"","?f="+compressed);
-}
-
-function loadFromURL(){
-  const params=new URLSearchParams(location.search);
-  const str=params.get("f");
-  if(!str) return;
-  featureKeys.forEach((key,i)=>{
-    const char=str[i];
-    if(!char || char==="x") return;
-    if(char==="u"){ selectedAnswers[key]=null; return; }
-    const feature=database.features[key];
-    if(feature.type==="categorical") selectedAnswers[key]=feature.values[parseInt(char)];
-    else selectedAnswers[key]=parseInt(char)/10;
-  });
-}
-
-function resetAll(){
-  selectedAnswers={};
-  currentStep=0;
-  history.replaceState(null,"",location.pathname);
-  renderQuestion();
-  updateResults();
-}
-
-function renderQuestion(){
-  const key=featureKeys[currentStep];
-  const feature=database.features[key];
-  const container=document.getElementById("questionContainer");
-  container.innerHTML="";
-  renderHistory();
-
-  const currentVal = selectedAnswers[key];
-  const nextBtn = document.getElementById("nextBtn");
-  nextBtn.innerText =
-    currentVal===null || currentVal===undefined ?
-    "مطمئن نیستم / سؤال بعدی" :
-    "سؤال بعدی";
-
-  container.innerHTML+="<label>"+feature.label_fa+"</label><br/>";
-
-  if(feature.type==="categorical"){
-    feature.values.forEach(val=>{
-      const chip=document.createElement("div");
-      chip.className="chip";
-      chip.innerText=val;
-      if(currentVal===val) chip.classList.add("selected");
-      chip.onclick=()=>{
-        selectedAnswers[key]=val;
-        updateURL();
-        renderQuestion();
-        updateResults();
-      };
-      container.appendChild(chip);
-    });
-  }
-
-  if(feature.type==="numeric"){
-    const value=currentVal ?? 0.5;
-    const slider=document.createElement("input");
-    slider.type="range"; slider.min=0; slider.max=1; slider.step=0.1;
-    slider.value=value;
-    const numberInput=document.createElement("input");
-    numberInput.type="number"; numberInput.min=0; numberInput.max=1; numberInput.step=0.1;
-    numberInput.value=value; numberInput.style.width="60px";
-    const visual=document.createElement("div"); visual.className="ratio-visual";
-    const dynamic=document.createElement("div"); dynamic.className="rect";
-    const base=document.createElement("div"); base.className="rect base";
-    dynamic.style.height=(value*100)+"%";
-
-    function updateValue(v){
-      v=Math.max(0,Math.min(1,parseFloat(v)));
-      slider.value=v;
-      numberInput.value=v;
-      dynamic.style.height=(v*100)+"%";
-      selectedAnswers[key]=v;
-      updateURL();
-      updateResults();
+// دیتابیس دقیق بر اساس ورودی شما
+const database = {
+  "version": "0.1",
+  "features": {
+    "heh_initial_loop": {
+      "label_fa": "حلقه ح اول (چشمی ح)",
+      "type": "categorical",
+      "values": ["باز", "بسته"]
+    },
+    "heh_initial_height_ratio_to_alif": {
+      "label_fa": "نسبت ارتفاع ح اول به الف",
+      "type": "numeric"
+    },
+    "dot_shape": {
+      "label_fa": "شکل نقطه‌ها",
+      "type": "categorical",
+      "values": ["دایره", "لوزی", "مربع", "پیوسته"]
     }
+  },
+  "fonts": [
+    { "name": "شازده", "url": "https://fontiran.com/fonts/shazde", "features": { "heh_initial_loop": ["باز"], "dot_shape": ["لوزی"] }, "weights": { "regular": { "heh_initial_height_ratio_to_alif": 0.7 }, "black": { "heh_initial_height_ratio_to_alif": 0.8 } } },
+    { "name": "دوران", "url": "https://fontiran.com/fonts/doran", "features": { "heh_initial_loop": ["باز"], "dot_shape": ["لوزی", "پیوسته"] }, "weights": { "regular": { "heh_initial_height_ratio_to_alif": 0.5 }, "black": { "heh_initial_height_ratio_to_alif": 0.6 } } },
+    { "name": "مصحفی", "url": "https://www.diwan.com/index.php/products/fonts/35-mishafi-with-quran-glossary", "features": { "heh_initial_loop": ["بسته"], "heh_initial_height_ratio_to_alif": 0.3, "dot_shape": ["لوزی"] } },
+    { "name": "انجمن", "url": "https://fontiran.com/fonts/anjoman", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["لوزی"] } },
+    { "name": "فرزاد", "url": "https://maryamsoft.com/FontShop/font.aspx?name=Farzad", "features": { "heh_initial_loop": ["بسته"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["دایره"] } },
+    { "name": "ردیف", "url": "https://maryamsoft.com/FontShop/font.aspx?name=Radif", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["لوزی", "مربع"] } },
+    { "name": "استعداد", "url": "https://aminabedi68.github.io/Estedad/", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.5, "dot_shape": ["لوزی"] } },
+    { "name": "میخک", "url": "https://aminabedi68.github.io/Mikhak/", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.6, "dot_shape": ["دایره", "پیوسته"] } },
+    { "name": "ماد", "url": "https://fontiran.com/fonts/mad", "features": { "heh_initial_loop": ["باز"], "heh_initial_height_ratio_to_alif": 0.7, "dot_shape": ["مربع", "پیوسته"] } },
+    { "name": "پسته", "url": "https://fontiran.com/fonts/pesteh", "features": { "heh_initial_loop": ["باز","بسته"], "heh_initial_height_ratio_to_alif": 0.4, "dot_shape": ["لوزی"] } }
+  ]
+};
 
-    slider.oninput=e=>updateValue(e.target.value);
-    numberInput.oninput=e=>updateValue(e.target.value);
+let featureKeys = Object.keys(database.features);
+let currentStep = 0;
+let selectedAnswers = {};
 
-    visual.appendChild(dynamic); visual.appendChild(base);
-    container.appendChild(slider);
-    container.appendChild(numberInput);
-    container.appendChild(visual);
-  }
+function init() {
+    loadFromURL();
+    renderQuestion();
+    updateResults();
 }
 
-function nextStep(){
-  const key=featureKeys[currentStep];
-  if(selectedAnswers[key]===undefined) selectedAnswers[key]=null;
-  if(currentStep<featureKeys.length-1) currentStep++;
-  updateURL();
-  renderQuestion();
-  updateResults();
+function updateURL() {
+    let compressed = "";
+    featureKeys.forEach(key => {
+        const val = selectedAnswers[key];
+        if (val === undefined) compressed += "x";
+        else if (val === null) compressed += "u";
+        else if (database.features[key].type === "categorical") compressed += database.features[key].values.indexOf(val);
+        else compressed += Math.round(val * 10);
+    });
+    history.replaceState(null, "", "?f=" + compressed);
 }
 
-function prevStep(){
-  if(currentStep>0){ currentStep--; renderQuestion(); }
+function loadFromURL() {
+    const params = new URLSearchParams(location.search);
+    const str = params.get("f");
+    if (!str) return;
+    featureKeys.forEach((key, i) => {
+        const char = str[i];
+        if (!char || char === "x") return;
+        if (char === "u") { selectedAnswers[key] = null; return; }
+        const feat = database.features[key];
+        if (feat.type === "categorical") selectedAnswers[key] = feat.values[parseInt(char)];
+        else selectedAnswers[key] = parseInt(char) / 10;
+    });
 }
 
-function renderHistory(){
-  const box=document.getElementById("historyChips");
-  box.innerHTML="";
-  Object.keys(selectedAnswers).forEach(key=>{
-    const val=selectedAnswers[key];
-    const chip=document.createElement("div");
-    chip.className="chip history";
-    chip.innerText=
-      database.features[key].label_fa + ": " + (val===null?"نامشخص":val);
-    chip.onclick=()=>{
-      currentStep=featureKeys.indexOf(key);
-      renderQuestion();
-    };
-    box.appendChild(chip);
-  });
-}
+function renderQuestion() {
+    const key = featureKeys[currentStep];
+    const feature = database.features[key];
+    const container = document.getElementById("questionContainer");
+    container.innerHTML = `<h2 style="margin-top:0">${feature.label_fa}</h2>`;
+    renderHistory();
 
-function updateResults(){
-  const resBox=document.getElementById("results");
-  resBox.innerHTML="";
-  const results=database.fonts.map(font=>{
-    let weightResults=[];
-    if(font.weights){
-      Object.keys(font.weights).forEach(w=>{
-        let score=0,total=0;
-        featureKeys.forEach(key=>{
-          const userVal=selectedAnswers[key];
-          if(userVal===undefined||userVal===null) return;
-          let fontVal=font.weights[w][key] ?? font.features[key];
-          if(Array.isArray(fontVal)){
-            if(fontVal.includes(userVal)) score++;
-          }else{
-            score+=Math.max(0,1-Math.abs(fontVal-userVal));
-          }
-          total++;
+    const currentVal = selectedAnswers[key];
+    document.getElementById("nextBtn").innerText = (currentVal == null) ? "نمی‌دانم / بعدی" : "تایید و بعدی";
+
+    if (feature.type === "categorical") {
+        const chipContainer = document.createElement("div");
+        feature.values.forEach(val => {
+            const chip = document.createElement("div");
+            chip.className = `chip ${currentVal === val ? 'selected' : ''}`;
+            chip.innerText = val;
+            chip.onclick = () => { selectedAnswers[key] = val; updateURL(); renderQuestion(); updateResults(); };
+            chipContainer.appendChild(chip);
         });
-        const percent=total?Math.round((score/total)*100):0;
-        if(percent>0) weightResults.push({weight:w, percent});
-      });
-    } else {
-      let score=0,total=0;
-      featureKeys.forEach(key=>{
-        const userVal=selectedAnswers[key];
-        if(userVal===undefined||userVal===null) return;
-        let fontVal=font.features[key];
-        if(Array.isArray(fontVal)){
-          if(fontVal.includes(userVal)) score++;
-        }else{
-          score+=Math.max(0,1-Math.abs(fontVal-userVal));
-        }
-        total++;
-      });
-      const percent=total?Math.round((score/total)*100):0;
-      if(percent>0) weightResults.push({weight:null, percent});
+        container.appendChild(chipContainer);
     }
-    return {font, weightResults};
-  });
 
-  // مرتب‌سازی درست بر اساس درصد بالاترین وزن
-  results.sort((a,b)=>{
-    const maxA=a.weightResults.length?a.weightResults.reduce((m,r)=>Math.max(m,r.percent),0):0;
-    const maxB=b.weightResults.length?b.weightResults.reduce((m,r)=>Math.max(m,r.percent),0):0;
-    return maxB-maxA;
-  });
+    if (feature.type === "numeric") {
+        const val = currentVal ?? 0.5;
+        
+        const visual = document.createElement("div");
+        visual.className = "ratio-visual";
+        visual.innerHTML = `
+            <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">ح اول: ${Math.round(val*100)}%</span></div>
+            <div class="rect base"><span class="rect-label">الف: ۱۰۰٪</span></div>
+        `;
 
-  results.forEach(r=>{
-    r.weightResults.forEach(wr=>{
-      const div=document.createElement("div");
-      div.className="result";
-      div.innerHTML=
-        "<b>"+r.font.name+"</b> — "+wr.percent+"% "+
-        (wr.weight? "(وزن: "+wr.weight+") ":"")+
-        (r.font.url?`<a href="${r.font.url}" target="_blank">[پروفایل]</a>`:"");
-      resBox.appendChild(div);
-    });
-  });
+        // اصلاح منطق درگ
+        let isDragging = false;
+        const updateFromEvent = (e) => {
+            const rect = visual.getBoundingClientRect();
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            let percent = 1 - ((clientY - rect.top) / rect.height);
+            percent = Math.max(0, Math.min(1, percent));
+            updateNumericValue(key, Math.round(percent * 10) / 10);
+        };
+
+        const startDrag = (e) => { isDragging = true; updateFromEvent(e); };
+        const stopDrag = () => isDragging = false;
+        const doDrag = (e) => { if (isDragging) { e.preventDefault(); updateFromEvent(e); } };
+
+        visual.addEventListener('mousedown', startDrag);
+        window.addEventListener('mouseup', stopDrag);
+        window.addEventListener('mousemove', doDrag);
+        
+        visual.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('touchend', stopDrag);
+        window.addEventListener('touchmove', doDrag, {passive: false});
+
+        container.appendChild(visual);
+        
+        const info = document.createElement("p");
+        info.style.fontSize = "13px";
+        info.style.textAlign = "center";
+        info.style.color = "#666";
+        info.innerText = "برای تغییر نسبت، مستطیل آبی را به بالا یا پایین بکشید.";
+        container.appendChild(info);
+    }
 }
-</script>
 
+function updateNumericValue(key, val) {
+    selectedAnswers[key] = val;
+    const rect = document.getElementById("dragRect");
+    if (rect) {
+        rect.style.height = (val * 100) + "%";
+        rect.querySelector('.rect-label').innerText = "ح اول: " + Math.round(val * 100) + "%";
+    }
+    updateURL();
+    updateResults();
+}
+
+function nextStep() {
+    if (currentStep < featureKeys.length - 1) {
+        if (selectedAnswers[featureKeys[currentStep]] === undefined) selectedAnswers[featureKeys[currentStep]] = null;
+        currentStep++;
+        renderQuestion();
+    }
+}
+
+function prevStep() {
+    if (currentStep > 0) { currentStep--; renderQuestion(); }
+}
+
+function renderHistory() {
+    const box = document.getElementById("historyChips");
+    box.innerHTML = "";
+    Object.keys(selectedAnswers).forEach(key => {
+        const val = selectedAnswers[key];
+        const chip = document.createElement("div");
+        chip.className = "chip history";
+        chip.innerText = `${database.features[key].label_fa}: ${val === null ? 'نامشخص' : val}`;
+        chip.onclick = () => { currentStep = featureKeys.indexOf(key); renderQuestion(); };
+        box.appendChild(chip);
+    });
+}
+
+function updateResults() {
+    const resBox = document.getElementById("results");
+    resBox.innerHTML = "";
+
+    const scoredFonts = database.fonts.map(font => {
+        let bestScore = 0;
+        let matchedWeights = [];
+
+        // تابع امتیازدهی برای هر حالت (وزن یا فونت کلی)
+        const calculateScore = (data) => {
+            let score = 0, total = 0;
+            featureKeys.forEach(key => {
+                const userVal = selectedAnswers[key];
+                if (userVal == null) return;
+                
+                // مقدار فونت یا در دیتای وزن است یا در دیتای کلی فونت
+                let fontVal = data[key] ?? font.features[key];
+                if (fontVal === undefined) return;
+
+                if (Array.isArray(fontVal)) {
+                    // در categorical ممکن است فونت چند مقدار را پشتیبانی کند
+                    score += fontVal.includes(userVal) ? 1 : 0;
+                } else if (typeof fontVal === 'number') {
+                    // محاسبه فاصله برای اعداد
+                    score += Math.max(0, 1 - Math.abs(fontVal - userVal));
+                } else {
+                    score += (fontVal === userVal) ? 1 : 0;
+                }
+                total++;
+            });
+            return total > 0 ? (score / total) : 0;
+        };
+
+        if (font.weights) {
+            Object.keys(font.weights).forEach(wName => {
+                const s = calculateScore(font.weights[wName]);
+                if (s > 0) matchedWeights.push({ name: wName, score: Math.round(s * 100) });
+                if (s > bestScore) bestScore = s;
+            });
+        } else {
+            bestScore = calculateScore(font.features);
+            if (bestScore > 0) matchedWeights.push({ name: 'استاندارد', score: Math.round(bestScore * 100) });
+        }
+
+        return { ...font, bestScore, matchedWeights };
+    }).filter(f => f.bestScore > 0).sort((a, b) => b.bestScore - a.bestScore);
+
+    if (scoredFonts.length === 0) {
+        resBox.innerHTML = "<p style='color:#999; text-align:center'>هنوز موردی یافت نشد. به سوالات پاسخ دهید.</p>";
+        return;
+    }
+
+    scoredFonts.forEach(f => {
+        const div = document.createElement("div");
+        div.className = "result-item";
+        div.innerHTML = `
+            <span class="match-percent">${Math.round(f.bestScore * 100)}%</span>
+            <span class="font-name">${f.name}</span>
+            <div style="margin-bottom:5px">
+                ${f.matchedWeights.map(w => `<span class="weight-tag">${w.name} (${w.score}%)</span>`).join('')}
+            </div>
+            ${f.url ? `<a href="${f.url}" target="_blank" class="profile-link">مشاهده و خرید فونت ←</a>` : ''}
+        `;
+        resBox.appendChild(div);
+    });
+}
+
+function resetAll() {
+    selectedAnswers = {};
+    currentStep = 0;
+    history.replaceState(null, "", window.location.pathname);
+    renderQuestion();
+    updateResults();
+}
+
+// شروع برنامه
+init();
+
+</script>
 </body>
 </html>
