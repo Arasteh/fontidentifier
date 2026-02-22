@@ -19,6 +19,7 @@
   "fonts": [
     {
       "name": "شازده",
+  "url": "https://fontiran.com/fonts/shazde",
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.7,
@@ -27,6 +28,7 @@
     },
     {
       "name": "دوران",
+  "url": "https://fontiran.com/fonts/doran",
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.5,
@@ -35,6 +37,7 @@
     },
     {
       "name": "مصحفی",
+  "url": "https://www.diwan.com/index.php/products/fonts/35-mishafi-with-quran-glossary",
       "features": {
         "heh_initial_loop": ["بسته"],
         "heh_initial_height_ratio_to_alif": 0.3,
@@ -43,6 +46,7 @@
     },
     {
       "name": "انجمن",
+  "url": "https://fontiran.com/fonts/anjoman",
       "features": {
         "heh_initial_loop": ["باز"],
         "heh_initial_height_ratio_to_alif": 0.5,
@@ -51,6 +55,7 @@
     },
     {
       "name": "فرزاد",
+  "url": "https://maryamsoft.com/FontShop/font.aspx?name=Farzad",
       "features": {
         "heh_initial_loop": ["بسته"],
         "heh_initial_height_ratio_to_alif": 0.5,
