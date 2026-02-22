@@ -61,6 +61,15 @@
         "heh_initial_height_ratio_to_alif": 0.5,
         "dot_shape": ["دایره"]
       }
+    },
+    {
+      "name": "ردیف",
+  "url": "https://maryamsoft.com/FontShop/font.aspx?name=Radif",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.5,
+        "dot_shape": ["لوزی", "مربع"]
+      }
     }
   ]
 }
