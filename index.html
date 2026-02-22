@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>Font Finder – Stable Version</title>
+<title>Font Finder</title>
 
 <style>
 body{
@@ -23,20 +23,6 @@ button{
   padding:8px 16px;
   cursor:pointer;
   margin-left:6px;
-}
-
-.progress{
-  height:8px;
-  background:#ddd;
-  border-radius:4px;
-  margin-bottom:15px;
-}
-.progress-bar{
-  height:8px;
-  background:#4a78ff;
-  width:0%;
-  border-radius:4px;
-  transition:0.3s;
 }
 
 .chip{
@@ -63,15 +49,16 @@ button{
   background:#e8f0ff;
   transition:0.3s;
 }
-.result.top1{background:#cfe0ff;border:2px solid #4a78ff;}
-.result.top2{background:#dbe7ff;}
-.result.top3{background:#e6eeff;}
+.result.highlight{
+  background:#cfe0ff;
+  border:2px solid #4a78ff;
+}
 
 .ratio-visual{
   display:flex;
   align-items:flex-end;
   gap:20px;
-  height:120px;
+  height:140px;
   margin-top:10px;
 }
 .rect{
@@ -90,14 +77,13 @@ button{
 <h1>Font Finder</h1>
 
 <div class="card">
-<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-
 <div id="historyChips"></div>
 <div id="questionContainer"></div>
 
 <div style="margin-top:15px;">
 <button onclick="prevStep()">قبلی</button>
 <button onclick="nextStep()">بعدی</button>
+<button onclick="resetAll()">شروع از ابتدا</button>
 </div>
 </div>
 
@@ -134,6 +120,15 @@ function loadFromURL(){
   });
 }
 
+/* ---------- Reset ---------- */
+function resetAll(){
+  selectedAnswers={};
+  currentStep=0;
+  history.replaceState(null,"",location.pathname);
+  renderQuestion();
+  updateResults();
+}
+
 /* ---------- Question ---------- */
 function renderQuestion(){
   const key=featureKeys[currentStep];
@@ -163,42 +158,53 @@ function renderQuestion(){
   }
 
   if(feature.type==="numeric"){
-    const input=document.createElement("input");
-    input.type="range";
-    input.min=0;input.max=1;input.step=0.1;
-    input.value=selectedAnswers[key]??0.5;
+    const value=selectedAnswers[key]??0.5;
 
-    const label=document.createElement("div");
-    label.innerText=input.value;
+    const slider=document.createElement("input");
+    slider.type="range";
+    slider.min=0;slider.max=1;slider.step=0.1;
+    slider.value=value;
+
+    const numberInput=document.createElement("input");
+    numberInput.type="number";
+    numberInput.min=0;
+    numberInput.max=1;
+    numberInput.step=0.1;
+    numberInput.value=value;
+    numberInput.style.width="60px";
+    numberInput.style.marginRight="10px";
 
     const visual=document.createElement("div");
     visual.className="ratio-visual";
 
     const dynamic=document.createElement("div");
-    dynamic.className="rect";   // 🔥 پویا سمت چپ
+    dynamic.className="rect";
 
     const base=document.createElement("div");
     base.className="rect base";
 
-    dynamic.style.height=(input.value*100)+"%";
+    dynamic.style.height=(value*100)+"%";
+
+    function updateValue(v){
+      v=Math.max(0,Math.min(1,parseFloat(v)));
+      slider.value=v;
+      numberInput.value=v;
+      dynamic.style.height=(v*100)+"%";
+      selectedAnswers[key]=v;
+      updateURL();
+      updateResults();
+    }
+
+    slider.oninput=e=>updateValue(e.target.value);
+    numberInput.oninput=e=>updateValue(e.target.value);
 
     visual.appendChild(dynamic);
     visual.appendChild(base);
 
-    input.oninput=()=>{
-      selectedAnswers[key]=parseFloat(input.value);
-      label.innerText=input.value;
-      dynamic.style.height=(input.value*100)+"%";
-      updateURL();
-      updateResults();
-    };
-
-    container.appendChild(input);
-    container.appendChild(label);
+    container.appendChild(slider);
+    container.appendChild(numberInput);
     container.appendChild(visual);
   }
-
-  updateProgress();
 }
 
 /* ---------- Navigation ---------- */
@@ -215,14 +221,17 @@ function prevStep(){
   }
 }
 
-/* ---------- History Chips ---------- */
+/* ---------- History ---------- */
 function renderHistory(){
   const box=document.getElementById("historyChips");
   box.innerHTML="";
   Object.keys(selectedAnswers).forEach(key=>{
     const chip=document.createElement("div");
     chip.className="chip history";
-    chip.innerText=database.features[key].label_fa;
+    chip.innerText=
+      database.features[key].label_fa+
+      ": "+selectedAnswers[key];
+
     chip.onclick=()=>{
       currentStep=featureKeys.indexOf(key);
       renderQuestion();
@@ -262,21 +271,27 @@ function updateResults(){
   results.forEach((r,i)=>{
     const div=document.createElement("div");
     div.className="result";
-    if(i===0) div.classList.add("top1");
-    if(i===1) div.classList.add("top2");
-    if(i===2) div.classList.add("top3");
-
     div.innerHTML="<b>"+r.name+"</b> — "+r.percent+"%";
     resBox.appendChild(div);
   });
+
+  applyHighlight(results);
 }
 
-/* ---------- Progress ---------- */
-function updateProgress(){
-  const total=featureKeys.length;
-  const answered=Object.keys(selectedAnswers).length;
-  document.getElementById("progressBar").style.width=
-    (answered/total*100)+"%";
+function applyHighlight(results){
+  if(results.length<2) return;
+
+  const top=results[0].percent;
+  const second=results[1].percent;
+
+  if(top===0 || top===second) return;
+
+  const diff=top-second;
+
+  if(diff>=5){
+    const nodes=document.querySelectorAll(".result");
+    nodes[0].classList.add("highlight");
+  }
 }
 </script>
 
