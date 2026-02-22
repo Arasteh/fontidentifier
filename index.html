@@ -2,14 +2,15 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>Persian Font Identifier – Enhanced UX MVP</title>
+<title>Persian Font Identifier – Pro MVP</title>
 
 <style>
 body {
-  font-family: sans-serif;
-  max-width: 900px;
+  font-family: system-ui, sans-serif;
+  max-width: 950px;
   margin: 40px auto;
   background: #f4f4f4;
+  transition: 0.3s;
 }
 
 h1 { text-align: center; }
@@ -17,7 +18,7 @@ h1 { text-align: center; }
 .card {
   background: white;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 14px;
   margin-bottom: 20px;
 }
 
@@ -40,14 +41,10 @@ button {
   background: #4a78ff;
   width: 0%;
   border-radius: 5px;
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
 }
 
 /* Chips */
-.chip-container {
-  margin-top: 10px;
-}
-
 .chip {
   display: inline-block;
   padding: 6px 14px;
@@ -59,9 +56,7 @@ button {
   font-size: 14px;
 }
 
-.chip:hover {
-  background: #dce4ff;
-}
+.chip:hover { background: #dce4ff; }
 
 .chip.selected {
   background: #4a78ff;
@@ -75,46 +70,61 @@ button {
   border-radius: 6px;
   font-size: 14px;
   background: #e8f0ff;
+  transition: 0.4s;
 }
 
 .result.top {
   background: #d4e3ff;
   border: 2px solid #4a78ff;
   font-weight: bold;
+  transform: scale(1.03);
 }
 
-.summary-item {
-  background: #f0f0f0;
-  padding: 6px;
-  border-radius: 6px;
-  margin-bottom: 4px;
+.confidence {
   font-size: 13px;
+  color: #444;
+  margin-top: 6px;
+}
+
+/* Ratio Visual */
+.ratio-visual {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  margin-top: 10px;
+  height: 120px;
+}
+
+.rect {
+  width: 40px;
+  background: #4a78ff;
+  transition: height 0.3s ease;
+}
+.rect.base {
+  height: 100%;
+  background: #ccc;
 }
 </style>
 </head>
 <body>
 
-<h1>Font Finder – Enhanced UX</h1>
+<h1>Font Finder – Pro MVP</h1>
 
 <div class="card">
   <div class="progress-bar-container">
     <div class="progress-bar" id="progressBar"></div>
   </div>
-
   <div id="questionContainer"></div>
-
-  <div id="navigationButtons">
-    <button onclick="prevStep()">سؤال قبلی</button>
-    <button id="nextBtn" onclick="nextStep()">سؤال بعدی</button>
+  <div>
+    <button onclick="prevStep()">قبلی</button>
+    <button id="nextBtn" onclick="nextStep()">بعدی</button>
   </div>
 </div>
 
 <div class="card">
-  <h3>خلاصه انتخاب‌ها:</h3>
-  <div id="summary"></div>
-
-  <h3>رتبه‌بندی فعلی:</h3>
+  <h3>نتایج:</h3>
   <div id="liveResults"></div>
+  <div class="confidence" id="confidenceBox"></div>
 </div>
 
 <script>
@@ -122,180 +132,178 @@ let database;
 let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
-let finalMode = false;
 
 fetch('database.json')
-  .then(res => res.json())
-  .then(data => {
-    database = data;
-    featureKeys = Object.keys(database.features);
-    renderQuestion();
-    updateLiveResults();
-  });
+.then(res=>res.json())
+.then(data=>{
+  database=data;
+  featureKeys=Object.keys(database.features);
+  loadFromURL();
+  renderQuestion();
+  updateResults();
+});
 
-function renderQuestion() {
-  const key = featureKeys[currentStep];
-  const feature = database.features[key];
-  const container = document.getElementById("questionContainer");
+/* -------- URL State -------- */
+function updateURL() {
+  const params = new URLSearchParams(selectedAnswers);
+  history.replaceState(null,"","?"+params.toString());
+}
+
+function loadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  params.forEach((value,key)=>{
+    selectedAnswers[key]=value;
+  });
+}
+
+/* -------- Question Rendering -------- */
+function renderQuestion(){
+  const key=featureKeys[currentStep];
+  const feature=database.features[key];
+  const container=document.getElementById("questionContainer");
 
   updateProgress();
-  container.innerHTML = `<label>${feature.label_fa}</label>`;
+  container.innerHTML=`<label>${feature.label_fa}</label><br/>`;
 
-  if (feature.type === "categorical") {
-    const chipContainer = document.createElement("div");
-    chipContainer.className = "chip-container";
+  if(feature.type==="categorical"){
+    feature.values.forEach(val=>{
+      const chip=document.createElement("div");
+      chip.className="chip";
+      chip.innerText=val;
 
-    feature.values.forEach(value => {
-      const chip = document.createElement("div");
-      chip.className = "chip";
-      chip.innerText = value;
-
-      if (selectedAnswers[key] === value)
+      if(selectedAnswers[key]===val)
         chip.classList.add("selected");
 
-      chip.onclick = () => {
-        selectedAnswers[key] = value;
+      chip.onclick=()=>{
+        selectedAnswers[key]=val;
+        updateURL();
         renderQuestion();
-        updateLiveResults();
-        renderSummary();
+        updateResults();
       };
-
-      chipContainer.appendChild(chip);
+      container.appendChild(chip);
     });
-
-    container.appendChild(chipContainer);
   }
 
-  if (feature.type === "numeric") {
-    const input = document.createElement("input");
-    input.type = "range";
-    input.min = 0;
-    input.max = 1;
-    input.step = 0.1;
-    input.value = selectedAnswers[key] || 0.5;
+  if(feature.type==="numeric"){
+    const input=document.createElement("input");
+    input.type="range";
+    input.min=0;
+    input.max=1;
+    input.step=0.1;
+    input.value=selectedAnswers[key]||0.5;
 
-    const label = document.createElement("div");
-    label.innerText = input.value;
+    const label=document.createElement("div");
+    label.innerText=input.value;
 
-    input.oninput = () => {
-      selectedAnswers[key] = input.value;
-      label.innerText = input.value;
-      updateLiveResults();
-      renderSummary();
+    const visual=document.createElement("div");
+    visual.className="ratio-visual";
+
+    const base=document.createElement("div");
+    base.className="rect base";
+
+    const dynamic=document.createElement("div");
+    dynamic.className="rect";
+    dynamic.style.height=(input.value*100)+"%";
+
+    visual.appendChild(base);
+    visual.appendChild(dynamic);
+
+    input.oninput=()=>{
+      selectedAnswers[key]=input.value;
+      label.innerText=input.value;
+      dynamic.style.height=(input.value*100)+"%";
+      updateURL();
+      updateResults();
     };
 
     container.appendChild(input);
     container.appendChild(label);
+    container.appendChild(visual);
   }
 
-  updateNavigationButtons();
+  updateNavButton();
 }
 
-function updateNavigationButtons() {
-  const nextBtn = document.getElementById("nextBtn");
-
-  if (currentStep === featureKeys.length - 1) {
-    nextBtn.innerText = "مشاهده نتایج نهایی";
-    nextBtn.onclick = () => {
-      finalMode = true;
-      highlightTopResults();
-    };
-  } else {
-    nextBtn.innerText = "سؤال بعدی";
-    nextBtn.onclick = nextStep;
-  }
-}
-
-function nextStep() {
-  if (currentStep < featureKeys.length - 1)
+/* -------- Navigation -------- */
+function nextStep(){
+  if(currentStep<featureKeys.length-1)
     currentStep++;
-
   renderQuestion();
 }
 
-function prevStep() {
-  if (currentStep > 0)
+function prevStep(){
+  if(currentStep>0)
     currentStep--;
-
   renderQuestion();
 }
 
-function calculateScores() {
-  return database.fonts.map(font => {
-    let score = 0;
-    let total = 0;
+function updateNavButton(){
+  const btn=document.getElementById("nextBtn");
+  if(currentStep===featureKeys.length-1){
+    btn.innerText="مشاهده نتایج نهایی";
+  } else {
+    btn.innerText="بعدی";
+  }
+}
 
-    for (let key in selectedAnswers) {
-      const value = selectedAnswers[key];
-      const fontValue = font.features[key];
+/* -------- Scoring -------- */
+function calculateScores(){
+  return database.fonts.map(font=>{
+    let score=0,total=0;
+    for(let key in selectedAnswers){
+      const val=selectedAnswers[key];
+      const fontVal=font.features[key];
       total++;
-
-      if (Array.isArray(fontValue)) {
-        if (fontValue.includes(value)) score++;
-      } else {
-        const diff = Math.abs(parseFloat(fontValue) - parseFloat(value));
-        score += Math.max(0, 1 - diff);
+      if(Array.isArray(fontVal)){
+        if(fontVal.includes(val)) score++;
+      }else{
+        const diff=Math.abs(parseFloat(fontVal)-parseFloat(val));
+        score+=Math.max(0,1-diff);
       }
     }
-
-    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-
-    return { name: font.name, percentage };
-  }).sort((a,b)=>b.percentage - a.percentage);
+    const percent=total?Math.round((score/total)*100):0;
+    return {name:font.name,percent};
+  }).sort((a,b)=>b.percent-a.percent);
 }
 
-function updateLiveResults() {
-  const container = document.getElementById("liveResults");
-  container.innerHTML = "";
+function updateResults(){
+  const container=document.getElementById("liveResults");
+  container.innerHTML="";
+  const results=calculateScores();
+  if(!results.length) return;
 
-  const results = calculateScores();
+  const top=results[0].percent;
+  const second=results[1]?results[1].percent:0;
+  const gap=top-second;
 
-  results.forEach(r => {
-    container.innerHTML += `
-      <div class="result">
-        <strong>${r.name}</strong> — ${r.percentage}%
-      </div>
-    `;
+  results.forEach(r=>{
+    const div=document.createElement("div");
+    div.className="result";
+    if(r.percent===top && gap>15)
+      div.classList.add("top");
+    div.innerHTML=`<strong>${r.name}</strong> — ${r.percent}%`;
+    container.appendChild(div);
   });
+
+  updateConfidence(gap,top);
 }
 
-function highlightTopResults() {
-  const container = document.getElementById("liveResults");
-  container.innerHTML = "";
+/* -------- Confidence -------- */
+function updateConfidence(gap,topScore){
+  const box=document.getElementById("confidenceBox");
+  if(topScore===0){
+    box.innerText="";
+    return;
+  }
 
-  const results = calculateScores();
-
-  const topScore = results[0].percentage;
-  const threshold = 15; // اختلاف معنادار
-
-  results.forEach(r => {
-    const isTop = (topScore - r.percentage) > threshold ? false : true;
-
-    container.innerHTML += `
-      <div class="result ${isTop ? 'top' : ''}">
-        <strong>${r.name}</strong> — ${r.percentage}%
-      </div>
-    `;
-  });
+  const confidence=Math.min(100,Math.round(topScore*0.7+gap*2));
+  box.innerText="Confidence: "+confidence+"%";
 }
 
-function renderSummary() {
-  const container = document.getElementById("summary");
-  container.innerHTML = "";
-
-  Object.entries(selectedAnswers).forEach(([key,value]) => {
-    const label = database.features[key].label_fa;
-    container.innerHTML += `
-      <div class="summary-item">
-        ${label}: ${value}
-      </div>
-    `;
-  });
-}
-
-function updateProgress() {
-  const percent = ((currentStep+1) / featureKeys.length) * 100;
-  document.getElementById("progressBar").style.width = percent + "%";
+/* -------- Progress -------- */
+function updateProgress(){
+  const percent=((currentStep+1)/featureKeys.length)*100;
+  document.getElementById("progressBar").style.width=percent+"%";
 }
 </script>
 
