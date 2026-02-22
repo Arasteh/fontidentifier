@@ -2,12 +2,12 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>Persian Font Identifier – Live Ranking MVP</title>
+<title>Persian Font Identifier – Enhanced UX MVP</title>
 
 <style>
 body {
-  font-family: system-ui;
-  max-width: 850px;
+  font-family: sans-serif;
+  max-width: 900px;
   margin: 40px auto;
   background: #f4f4f4;
 }
@@ -17,23 +17,15 @@ h1 { text-align: center; }
 .card {
   background: white;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   margin-bottom: 20px;
 }
 
 button {
-  padding: 8px 14px;
+  padding: 8px 16px;
   cursor: pointer;
   margin-top: 15px;
   margin-left: 5px;
-}
-
-.result {
-  padding: 8px;
-  background: #e8f0ff;
-  margin-bottom: 6px;
-  border-radius: 6px;
-  font-size: 14px;
 }
 
 .progress-bar-container {
@@ -51,6 +43,46 @@ button {
   transition: width 0.3s ease;
 }
 
+/* Chips */
+.chip-container {
+  margin-top: 10px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 14px;
+  margin: 4px;
+  background: #eee;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.chip:hover {
+  background: #dce4ff;
+}
+
+.chip.selected {
+  background: #4a78ff;
+  color: white;
+}
+
+/* Results */
+.result {
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #e8f0ff;
+}
+
+.result.top {
+  background: #d4e3ff;
+  border: 2px solid #4a78ff;
+  font-weight: bold;
+}
+
 .summary-item {
   background: #f0f0f0;
   padding: 6px;
@@ -62,7 +94,7 @@ button {
 </head>
 <body>
 
-<h1>Font Finder – Live Ranking</h1>
+<h1>Font Finder – Enhanced UX</h1>
 
 <div class="card">
   <div class="progress-bar-container">
@@ -71,9 +103,9 @@ button {
 
   <div id="questionContainer"></div>
 
-  <div>
+  <div id="navigationButtons">
     <button onclick="prevStep()">سؤال قبلی</button>
-    <button onclick="nextStep()">سؤال بعدی</button>
+    <button id="nextBtn" onclick="nextStep()">سؤال بعدی</button>
   </div>
 </div>
 
@@ -81,7 +113,7 @@ button {
   <h3>خلاصه انتخاب‌ها:</h3>
   <div id="summary"></div>
 
-  <h3>رتبه‌بندی فعلی فونت‌ها:</h3>
+  <h3>رتبه‌بندی فعلی:</h3>
   <div id="liveResults"></div>
 </div>
 
@@ -90,67 +122,48 @@ let database;
 let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
+let finalMode = false;
 
 fetch('database.json')
   .then(res => res.json())
   .then(data => {
     database = data;
-    featureKeys = rankFeaturesByDiscrimination();
+    featureKeys = Object.keys(database.features);
     renderQuestion();
     updateLiveResults();
   });
 
-/* --------- مرتب‌سازی ویژگی‌ها --------- */
-function rankFeaturesByDiscrimination() {
-  const keys = Object.keys(database.features);
-
-  return keys.sort((a,b) => diversityScore(b) - diversityScore(a));
-}
-
-function diversityScore(featureKey) {
-  const values = new Set();
-  database.fonts.forEach(font => {
-    const v = font.features[featureKey];
-    if (Array.isArray(v)) v.forEach(x => values.add(x));
-    else values.add(v);
-  });
-  return values.size;
-}
-
-/* --------- رندر سؤال --------- */
 function renderQuestion() {
-
-  if (currentStep >= featureKeys.length)
-    currentStep = featureKeys.length - 1;
-
   const key = featureKeys[currentStep];
   const feature = database.features[key];
   const container = document.getElementById("questionContainer");
 
   updateProgress();
-
-  container.innerHTML = `<label>${feature.label_fa}</label><br/>`;
+  container.innerHTML = `<label>${feature.label_fa}</label>`;
 
   if (feature.type === "categorical") {
-    const select = document.createElement("select");
-    select.id = "answer";
+    const chipContainer = document.createElement("div");
+    chipContainer.className = "chip-container";
 
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "انتخاب کنید";
-    select.appendChild(empty);
+    feature.values.forEach(value => {
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      chip.innerText = value;
 
-    feature.values.forEach(v => {
-      const option = document.createElement("option");
-      option.value = v;
-      option.textContent = v;
-      select.appendChild(option);
+      if (selectedAnswers[key] === value)
+        chip.classList.add("selected");
+
+      chip.onclick = () => {
+        selectedAnswers[key] = value;
+        renderQuestion();
+        updateLiveResults();
+        renderSummary();
+      };
+
+      chipContainer.appendChild(chip);
     });
 
-    if (selectedAnswers[key])
-      select.value = selectedAnswers[key];
-
-    container.appendChild(select);
+    container.appendChild(chipContainer);
   }
 
   if (feature.type === "numeric") {
@@ -160,14 +173,13 @@ function renderQuestion() {
     input.max = 1;
     input.step = 0.1;
     input.value = selectedAnswers[key] || 0.5;
-    input.id = "answer";
 
     const label = document.createElement("div");
     label.innerText = input.value;
 
     input.oninput = () => {
-      label.innerText = input.value;
       selectedAnswers[key] = input.value;
+      label.innerText = input.value;
       updateLiveResults();
       renderSummary();
     };
@@ -175,29 +187,32 @@ function renderQuestion() {
     container.appendChild(input);
     container.appendChild(label);
   }
+
+  updateNavigationButtons();
 }
 
-/* --------- مرحله بعد --------- */
+function updateNavigationButtons() {
+  const nextBtn = document.getElementById("nextBtn");
+
+  if (currentStep === featureKeys.length - 1) {
+    nextBtn.innerText = "مشاهده نتایج نهایی";
+    nextBtn.onclick = () => {
+      finalMode = true;
+      highlightTopResults();
+    };
+  } else {
+    nextBtn.innerText = "سؤال بعدی";
+    nextBtn.onclick = nextStep;
+  }
+}
+
 function nextStep() {
-  const answerEl = document.getElementById("answer");
-  if (!answerEl) return;
-
-  const value = answerEl.value;
-  const key = featureKeys[currentStep];
-
-  if (value !== "")
-    selectedAnswers[key] = value;
-
-  updateLiveResults();
-  renderSummary();
-
   if (currentStep < featureKeys.length - 1)
     currentStep++;
 
   renderQuestion();
 }
 
-/* --------- مرحله قبل --------- */
 function prevStep() {
   if (currentStep > 0)
     currentStep--;
@@ -205,9 +220,8 @@ function prevStep() {
   renderQuestion();
 }
 
-/* --------- محاسبه امتیاز کامل --------- */
 function calculateScores() {
-  const results = database.fonts.map(font => {
+  return database.fonts.map(font => {
     let score = 0;
     let total = 0;
 
@@ -226,17 +240,10 @@ function calculateScores() {
 
     const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
 
-    return {
-      name: font.name,
-      percentage
-    };
-  });
-
-  results.sort((a,b)=>b.percentage - a.percentage);
-  return results;
+    return { name: font.name, percentage };
+  }).sort((a,b)=>b.percentage - a.percentage);
 }
 
-/* --------- نمایش زنده نتایج --------- */
 function updateLiveResults() {
   const container = document.getElementById("liveResults");
   container.innerHTML = "";
@@ -252,7 +259,26 @@ function updateLiveResults() {
   });
 }
 
-/* --------- خلاصه انتخاب‌ها --------- */
+function highlightTopResults() {
+  const container = document.getElementById("liveResults");
+  container.innerHTML = "";
+
+  const results = calculateScores();
+
+  const topScore = results[0].percentage;
+  const threshold = 15; // اختلاف معنادار
+
+  results.forEach(r => {
+    const isTop = (topScore - r.percentage) > threshold ? false : true;
+
+    container.innerHTML += `
+      <div class="result ${isTop ? 'top' : ''}">
+        <strong>${r.name}</strong> — ${r.percentage}%
+      </div>
+    `;
+  });
+}
+
 function renderSummary() {
   const container = document.getElementById("summary");
   container.innerHTML = "";
@@ -267,9 +293,8 @@ function renderSummary() {
   });
 }
 
-/* --------- پیشرفت --------- */
 function updateProgress() {
-  const percent = (currentStep / featureKeys.length) * 100;
+  const percent = ((currentStep+1) / featureKeys.length) * 100;
   document.getElementById("progressBar").style.width = percent + "%";
 }
 </script>
