@@ -63,12 +63,10 @@ button{
   width:50px;
   background:#4a78ff;
   transition:0.2s;
-  cursor:ns-resize;
 }
 .rect.base{
   background:#ccc;
   height:100%;
-  cursor:default;
 }
 @media(max-width:900px){
   .layout{
@@ -183,17 +181,17 @@ function renderQuestion(){
   }
 
   if(feature.type==="numeric"){
-    const value=currentVal ?? null;
+    const value=currentVal ?? 0.5;
     const slider=document.createElement("input");
     slider.type="range"; slider.min=0; slider.max=1; slider.step=0.1;
-    slider.value=value??0.5;
+    slider.value=value;
     const numberInput=document.createElement("input");
     numberInput.type="number"; numberInput.min=0; numberInput.max=1; numberInput.step=0.1;
-    numberInput.value=value??0.5; numberInput.style.width="60px";
+    numberInput.value=value; numberInput.style.width="60px";
     const visual=document.createElement("div"); visual.className="ratio-visual";
     const dynamic=document.createElement("div"); dynamic.className="rect";
     const base=document.createElement("div"); base.className="rect base";
-    dynamic.style.height=(value??0.5)*100+"%";
+    dynamic.style.height=(value*100)+"%";
 
     function updateValue(v){
       v=Math.max(0,Math.min(1,parseFloat(v)));
@@ -203,21 +201,10 @@ function renderQuestion(){
       selectedAnswers[key]=v;
       updateURL();
       updateResults();
-      renderQuestion();
     }
 
     slider.oninput=e=>updateValue(e.target.value);
     numberInput.oninput=e=>updateValue(e.target.value);
-
-    dynamic.onmousedown=function(e){
-      e.preventDefault();
-      document.onmousemove=function(ev){
-        const rect=visual.getBoundingClientRect();
-        const percent=(rect.bottom-ev.clientY)/rect.height;
-        updateValue(percent);
-      };
-      document.onmouseup=function(){ document.onmousemove=null; };
-    };
 
     visual.appendChild(dynamic); visual.appendChild(base);
     container.appendChild(slider);
@@ -297,9 +284,10 @@ function updateResults(){
     return {font, weightResults};
   });
 
+  // مرتب‌سازی درست بر اساس درصد بالاترین وزن
   results.sort((a,b)=>{
-    const maxA=a.weightResults.reduce((m,r)=>Math.max(m,r.percent),0);
-    const maxB=b.weightResults.reduce((m,r)=>Math.max(m,r.percent),0);
+    const maxA=a.weightResults.length?a.weightResults.reduce((m,r)=>Math.max(m,r.percent),0):0;
+    const maxB=b.weightResults.length?b.weightResults.reduce((m,r)=>Math.max(m,r.percent),0):0;
     return maxB-maxA;
   });
 
