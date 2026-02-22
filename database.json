@@ -70,6 +70,33 @@
         "heh_initial_height_ratio_to_alif": 0.5,
         "dot_shape": ["لوزی", "مربع"]
       }
+    },
+    {
+      "name": "استعداد",
+  "url": "https://aminabedi68.github.io/Estedad/",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.5,
+        "dot_shape": ["لوزی"]
+      }
+    },
+    {
+      "name": "میخک",
+  "url": "https://aminabedi68.github.io/Mikhak/",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.6,
+        "dot_shape": ["دایره", "پیوسته"]
+      }
+    },
+    {
+      "name": "ماد",
+  "url": "https://fontiran.com/fonts/mad",
+      "features": {
+        "heh_initial_loop": ["باز"],
+        "heh_initial_height_ratio_to_alif": 0.7,
+        "dot_shape": ["مربع", "پیوسته"]
+      }
     }
   ]
 }
