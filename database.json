@@ -14,20 +14,16 @@
       "label_fa": "شکل نقطه‌ها",
       "type": "categorical",
       "values": ["دایره", "لوزی", "مربع", "پیوسته"]
-    },
-    "weight": {
-  "label_fa": "وزن فونت",
-  "type": "categorical",
-  "values": ["regular","black"]
-}
+    }
   },
   "fonts": [
     {
-      "name": "شازده",
+  "name": "شازده",
   "url": "https://fontiran.com/fonts/shazde",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "dot_shape": ["لوزی"],
+  "features": {
+    "heh_initial_loop": ["باز"],
+    "dot_shape": ["لوزی"]
+  },
   "weights": {
     "regular": {
       "heh_initial_height_ratio_to_alif": 0.7
@@ -36,13 +32,14 @@
       "heh_initial_height_ratio_to_alif": 0.8
     }
   }
-      }
-    },
+},
     {
       "name": "دوران",
   "url": "https://fontiran.com/fonts/doran",
       "features": {
-        "heh_initial_loop": ["باز"],
+        "heh_initial_loop": ["باز"],,
+        "dot_shape": ["لوزی", "پیوسته"]
+      },
   "weights": {
     "regular": {
       "heh_initial_height_ratio_to_alif": 0.5
@@ -50,9 +47,7 @@
     "black": {
       "heh_initial_height_ratio_to_alif": 0.6
     }
-  },
-        "dot_shape": ["لوزی", "پیوسته"]
-      }
+  }
     },
     {
       "name": "مصحفی",
