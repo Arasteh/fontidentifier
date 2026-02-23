@@ -6,15 +6,6 @@
       "type": "categorical",
       "values": ["نسخ", "نستعلیق", "دست‌نویس", "ثلث", "ریحان/محقق", "کوفی", "هندسی"]
     },
-    "heh_initial_loop": {
-      "label_fa": "حلقه ح اول",
-      "type": "categorical",
-      "values": ["باز", "بسته"]
-    },
-    "heh_initial_height_ratio_to_alif": {
-      "label_fa": "نسبت ارتفاع ح اول به الف",
-      "type": "numeric"
-    },
     "contrast": {
       "label_fa": "کنتراست ضخامت",
       "type": "numeric"
@@ -23,6 +14,11 @@
       "label_fa": "شکل نقطه‌ها",
       "type": "categorical",
       "values": ["دایره", "لوزی", "مربع", "پیوسته"]
+    },
+    "heh_initial_loop": {
+      "label_fa": "حلقه ح اول",
+      "type": "categorical",
+      "values": ["باز", "بسته"]
     },
     "mid_ein_loop": {
       "label_fa": "حلقهٔ ـعـ وسط",
@@ -33,6 +29,10 @@
       "label_fa": "حلقهٔ م تنها",
       "type": "categorical",
       "values": ["باز", "بسته","توپر"]
+    },
+    "heh_initial_height_ratio_to_alif": {
+      "label_fa": "نسبت ارتفاع ح اول به الف",
+      "type": "numeric"
     }
   },
   "fonts": [
