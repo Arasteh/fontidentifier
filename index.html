@@ -10,29 +10,8 @@
             --bg: #f8f9fa;
             --card: #ffffff;
             --text: #333;
-            --text-light: #666;
             --border: #edf0f5;
-            --chip-bg: #f0f0f0;
-            --visual-bg: #fdfdfd;
         }
-
-        /* حالت تاریک خودکار */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #121212;
-                --card: #1e1e1e;
-                --text: #e0e0e0;
-                --text-light: #aaa;
-                --border: #333;
-                --chip-bg: #2d2d2d;
-                --visual-bg: #1a1a1a;
-            }
-            .rect.base { background: #444 !important; }
-            .circle.fixed { background: #444 !important; }
-            button { background: #333 !important; color: #eee !important; }
-            .result-item { background: #252525 !important; }
-        }
-
         body {
             font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
@@ -40,34 +19,34 @@
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
-            transition: background 0.3s, color 0.3s;
         }
         .container { max-width: 1100px; margin: 0 auto; }
         .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: fit-content; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); height: fit-content; }
         
         h1 { color: var(--primary); margin-bottom: 25px; text-align: center; font-size: 24px; }
         h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
         
+        /* Chips */
         .chip {
             display: inline-block;
             padding: 8px 16px;
             margin: 4px;
-            background: var(--chip-bg);
-            color: var(--text);
+            background: #f0f0f0;
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 13px;
         }
         .chip.selected { background: var(--primary); color: white; }
-        .chip.history { background: rgba(74, 120, 255, 0.1); color: var(--primary); font-size: 11px; padding: 4px 10px; }
+        .chip.history { background: #e8f0ff; color: var(--primary); font-size: 11px; padding: 4px 10px; }
 
+        /* Generic Visual Container */
         .visual-container {
             margin: 20px 0;
-            background: var(--visual-bg);
+            background: #fdfdfd;
             border-radius: 10px;
-            border: 1px dashed var(--border);
+            border: 1px dashed #ddd;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -75,6 +54,7 @@
             gap: 20px;
         }
 
+        /* Ratio Visual (Bars) */
         .ratio-visual {
             display: flex;
             align-items: flex-end;
@@ -105,6 +85,7 @@
             white-space: nowrap;
         }
 
+        /* Contrast Visual (Circles) */
         .contrast-visual {
             display: flex;
             align-items: center;
@@ -113,40 +94,67 @@
             height: 100px;
             width: 100%;
         }
-        .circle-wrapper { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; position: relative; }
-        .circle { background: var(--primary); border-radius: 50%; transition: all 0.2s ease; }
+        .circle-wrapper {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .circle {
+            background: var(--primary);
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
         .circle.fixed { width: 60px; height: 60px; background: #ddd; }
         .circle.dynamic { width: 60px; height: 60px; }
 
+        /* Slider */
         .slider-box { width: 100%; max-width: 300px; }
-        input[type=range] { width: 100%; cursor: pointer; }
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+        }
 
+        /* Results - Ultra Compact Style */
         .result-item {
-            padding: 10px 14px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            background: var(--card);
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            background: #fff;
             border: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s;
         }
-        .font-link { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; flex-grow: 1; }
+        .font-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-grow: 1;
+        }
         .font-link:hover .font-name { color: var(--primary); }
         .weight-name {
             font-size: 10px;
-            color: var(--text-light);
-            background: var(--chip-bg);
-            padding: 1px 6px;
-            border-radius: 4px;
+            color: #888;
+            background: #f5f5f5;
+            padding: 0px 5px;
+            border-radius: 3px;
+            font-weight: normal !important;
         }
-        .match-score { font-size: 14px; color: var(--primary); font-weight: bold; }
+        .match-score {
+            font-size: 14px;
+            color: var(--primary);
+            opacity: 0.8;
+            font-weight: bold;
+        }
 
         .controls { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border); }
-        button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; background: #eee; color: #333; font-family: inherit; font-size: 13px; transition: 0.2s; }
+        button { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; background: #eee; font-family: inherit; font-size: 13px; transition: 0.2s; }
         button#nextBtn { background: var(--primary); color: white; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .hidden { display: none; }
 
         @media(max-width: 900px) { .layout { grid-template-columns: 1fr; } }
@@ -161,15 +169,15 @@
         <div class="card">
             <div id="historyChips" style="margin-bottom: 15px;"></div>
             <div id="questionContainer">
-                <p style="text-align:center; color:var(--text-light);">در حال بارگذاری و تحلیل داده‌ها...</p>
+                <p style="text-align:center; color:#888;">در حال بارگذاری داده‌ها...</p>
             </div>
 
             <div class="controls">
                 <div>
-                    <button onclick="prevStep()" id="prevBtn">قبلی</button>
+                    <button onclick="prevStep()">قبلی</button>
                     <button id="nextBtn" onclick="nextStep()">نمی‌دانم / بعدی</button>
                 </div>
-                <button onclick="resetAll()" style="color: var(--text-light); background: transparent;">شروع از نو</button>
+                <button onclick="resetAll()" style="color: #888; background: transparent;">شروع از نو</button>
             </div>
         </div>
 
@@ -192,9 +200,15 @@ async function init() {
         if (!response.ok) throw new Error('فایل دیتابیس یافت نشد.');
         database = await response.json();
         
-        // بهینه‌سازی ترتیب سوالات بر اساس تنوع داده‌ها (Entropy-based)
-        featureKeys = sortFeaturesByImportance(database);
-        
+        // Ensure contrast feature exists
+        if (!database.features.contrast) {
+            database.features.contrast = {
+                "label_fa": "کنتراست ضخامت",
+                "type": "numeric"
+            };
+        }
+
+        featureKeys = Object.keys(database.features);
         loadFromURL();
         renderQuestion();
         updateResults();
@@ -205,56 +219,32 @@ async function init() {
     }
 }
 
-/**
- * مرتب‌سازی ویژگی‌ها بر اساس قدرت تفکیک
- * سوالاتی که مقادیر متنوع‌تری بین فونت‌ها دارند زودتر پرسیده می‌شوند
- */
-function sortFeaturesByImportance(db) {
-    const keys = Object.keys(db.features);
-    const fontData = db.fonts;
-
-    const scores = keys.map(key => {
-        let values = [];
-        fontData.forEach(f => {
-            // استخراج مقدار از فونت یا وزن‌های آن
-            if (f.features && f.features[key] !== undefined) {
-                values.push(f.features[key]);
-            } else if (f.weights) {
-                Object.values(f.weights).forEach(w => {
-                    if (w[key] !== undefined) values.push(w[key]);
-                });
-            }
-        });
-
-        // محاسبه میزان تنوع (Unique values ratio)
-        const uniqueCount = new Set(values.flat()).size;
-        const importance = uniqueCount / (db.features[key].type === 'numeric' ? 5 : 1); 
-        
-        return { key, importance };
-    });
-
-    return scores.sort((a, b) => b.importance - a.importance).map(s => s.key);
-}
-
 function updateURL() {
     if (!database) return;
-    const params = new URLSearchParams();
-    const data = {};
+    let compressed = "";
     featureKeys.forEach(key => {
-        if (selectedAnswers[key] !== undefined) data[key] = selectedAnswers[key];
+        const val = selectedAnswers[key];
+        if (val === undefined) compressed += "x";
+        else if (val === null) compressed += "u";
+        else if (database.features[key].type === "categorical") compressed += database.features[key].values.indexOf(val);
+        else compressed += Math.round(val * 10);
     });
-    if (Object.keys(data).length > 0) {
-        params.set("state", btoa(JSON.stringify(data)));
-        history.replaceState(null, "", "?" + params.toString());
-    }
+    history.replaceState(null, "", "?f=" + compressed);
 }
 
 function loadFromURL() {
-    try {
-        const params = new URLSearchParams(location.search);
-        const state = params.get("state");
-        if (state) selectedAnswers = JSON.parse(atob(state));
-    } catch(e) { console.error("URL Load Error", e); }
+    if (!database) return;
+    const params = new URLSearchParams(location.search);
+    const str = params.get("f");
+    if (!str) return;
+    featureKeys.forEach((key, i) => {
+        const char = str[i];
+        if (!char || char === "x") return;
+        if (char === "u") { selectedAnswers[key] = null; return; }
+        const feat = database.features[key];
+        if (feat.type === "categorical") selectedAnswers[key] = feat.values[parseInt(char)];
+        else selectedAnswers[key] = parseInt(char) / 10;
+    });
 }
 
 function renderQuestion() {
@@ -263,19 +253,21 @@ function renderQuestion() {
     const feature = database.features[key];
     const container = document.getElementById("questionContainer");
     const nextBtn = document.getElementById("nextBtn");
-    const prevBtn = document.getElementById("prevBtn");
     
-    prevBtn.disabled = currentStep === 0;
-    container.innerHTML = `<h4 style="margin:0 0 15px 0; color:var(--text);">${feature.label_fa}</h4>`;
+    container.innerHTML = `<h4 style="margin:0 0 15px 0; color:#555;">${feature.label_fa}</h4>`;
     renderHistory();
 
     const currentVal = selectedAnswers[key];
     
-    // مدیریت وضعیت دکمه بعدی
-    if (currentStep >= featureKeys.length - 1) {
-        nextBtn.innerText = "مشاهده نتایج نهایی";
+    // Button state management
+    if (currentStep === featureKeys.length - 1 && currentVal !== undefined) {
+        nextBtn.classList.add("hidden");
+    } else if (currentStep >= featureKeys.length - 1 && currentVal === undefined) {
+        nextBtn.classList.remove("hidden");
+        nextBtn.innerText = "پایان سوالات";
     } else {
-        nextBtn.innerText = (currentVal === undefined || currentVal === null) ? "نمی‌دانم / بعدی" : "بعدی";
+        nextBtn.classList.remove("hidden");
+        nextBtn.innerText = (currentVal == null) ? "نمی‌دانم / بعدی" : "بعدی";
     }
 
     if (feature.type === "categorical") {
@@ -300,56 +292,72 @@ function renderQuestion() {
         const visualWrap = document.createElement("div");
         visualWrap.className = "visual-container";
 
-        if (key === 'contrast' || feature.label_fa.includes("تضاد") || feature.label_fa.includes("کنتراست")) {
+        if (key === 'contrast') {
+            // Circle Contrast Visual
             visualWrap.innerHTML = `
                 <div class="contrast-visual">
                     <div class="circle-wrapper"><div class="circle fixed"></div></div>
-                    <div class="circle-wrapper"><div class="circle dynamic" id="dynCircle" style="width:${60 * (1.1 - val)}px; height:${60 * (1.1 - val)}px"></div></div>
+                    <div class="circle-wrapper"><div class="circle dynamic" id="dynCircle" style="width:${60 * (1 - val*0.99)}px; height:${60 * (1 - val*0.99)}px"></div></div>
                 </div>
                 <div class="slider-box">
-                    <input type="range" min="0" max="1" step="0.1" value="${val}" id="numSlider">
-                    <div style="text-align:center; font-size:12px; margin-top:5px; color:var(--text-light);">مقدار: <span id="numVal">${Math.round(val*100)}%</span></div>
+                    <input type="range" min="0" max="1" step="0.01" value="${val}" id="contrastSlider">
+                    <div style="text-align:center; font-size:12px; margin-top:5px; color:#888;">کنتراست: <span id="contrastVal">${Math.round(val*100)}%</span></div>
                 </div>
             `;
+            
+            const slider = visualWrap.querySelector('#contrastSlider');
+            slider.addEventListener('input', (e) => {
+                const newScore = parseFloat(e.target.value);
+                const dynCircle = document.getElementById('dynCircle');
+                const scoreLabel = document.getElementById('contrastVal');
+                
+                // Update circle size (100% size at 0, ~1% size at 1.0)
+                const newSize = 60 * (1 - newScore * 0.99);
+                dynCircle.style.width = newSize + "px";
+                dynCircle.style.height = newSize + "px";
+                scoreLabel.innerText = Math.round(newScore * 100) + "%";
+                
+                selectedAnswers[key] = Math.round(newScore * 10) / 10;
+                updateURL();
+                updateResults();
+                if (nextBtn.innerText.includes("نمی‌دانم")) nextBtn.innerText = "بعدی";
+            });
         } else {
+            // Bars Ratio Visual
             visualWrap.innerHTML = `
                 <div class="ratio-visual" id="barVisual">
                     <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">${Math.round(val*100)}%</span></div>
                     <div class="rect base"><span class="rect-label">۱۰۰٪</span></div>
                 </div>
-                <div style="margin-top:10px; font-size:12px; color:var(--text-light);">برای تغییر بکشید</div>
             `;
-        }
-
-        const slider = visualWrap.querySelector('#numSlider');
-        if (slider) {
-            slider.addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                document.getElementById('numVal').innerText = Math.round(v * 100) + "%";
-                const dyn = document.getElementById('dynCircle');
-                dyn.style.width = dyn.style.height = (60 * (1.1 - v)) + "px";
-                selectedAnswers[key] = v;
-                updateURL();
-                updateResults();
-                nextBtn.innerText = "بعدی";
-            });
-        }
-
-        const barVisual = visualWrap.querySelector('#barVisual');
-        if (barVisual) {
-            const updateBar = (e) => {
-                const rect = barVisual.getBoundingClientRect();
+            
+            const visual = visualWrap.querySelector('#barVisual');
+            let isDragging = false;
+            const handleInteraction = (e) => {
+                const rect = visual.getBoundingClientRect();
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 let percent = 1 - ((clientY - rect.top) / rect.height);
-                percent = Math.max(0, Math.min(1, Math.round(percent * 10) / 10));
+                percent = Math.max(0, Math.min(1, percent));
+                const roundedVal = Math.round(percent * 10) / 10;
                 
-                selectedAnswers[key] = percent;
-                renderQuestion();
-                updateResults();
+                const dragRect = document.getElementById("dragRect");
+                if (dragRect) {
+                    dragRect.style.height = (roundedVal * 100) + "%";
+                    dragRect.querySelector('.rect-label').innerText = Math.round(roundedVal * 100) + "%";
+                }
+
+                selectedAnswers[key] = roundedVal;
                 updateURL();
+                updateResults();
+                if (nextBtn.innerText.includes("نمی‌دانم")) nextBtn.innerText = "بعدی";
             };
-            barVisual.onmousedown = () => { window.onmousemove = updateBar; window.onmouseup = () => window.onmousemove = null; };
-            barVisual.ontouchmove = (e) => { e.preventDefault(); updateBar(e); };
+
+            visual.addEventListener('mousedown', (e) => { isDragging = true; handleInteraction(e); });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            window.addEventListener('mousemove', (e) => { if (isDragging) handleInteraction(e); });
+            visual.addEventListener('touchstart', (e) => { isDragging = true; handleInteraction(e); }, {passive: false});
+            window.addEventListener('touchend', () => { isDragging = false; });
+            window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); handleInteraction(e); } }, {passive: false});
         }
         
         container.appendChild(visualWrap);
@@ -358,11 +366,14 @@ function renderQuestion() {
 
 function nextStep() {
     if (currentStep < featureKeys.length - 1) {
-        if (selectedAnswers[featureKeys[currentStep]] === undefined) selectedAnswers[featureKeys[currentStep]] = null;
+        const key = featureKeys[currentStep];
+        if (selectedAnswers[key] === undefined) selectedAnswers[key] = null;
         currentStep++;
         renderQuestion();
     } else {
-        updateResults(); // نمایش نهایی
+        const key = featureKeys[currentStep];
+        if (selectedAnswers[key] === undefined) selectedAnswers[key] = null;
+        renderQuestion();
     }
 }
 
@@ -371,87 +382,82 @@ function prevStep() {
 }
 
 function renderHistory() {
+    if (!database) return;
     const box = document.getElementById("historyChips");
     box.innerHTML = "";
     Object.keys(selectedAnswers).forEach(key => {
         const val = selectedAnswers[key];
         const chip = document.createElement("div");
         chip.className = "chip history";
-        const label = database.features[key].label_fa;
-        chip.innerText = `${label}: ${val === null ? '؟' : (typeof val === 'number' ? Math.round(val*100)+'%' : val)}`;
+        chip.innerText = `${database.features[key].label_fa}: ${val === null ? '؟' : val}`;
         chip.onclick = () => { currentStep = featureKeys.indexOf(key); renderQuestion(); };
         box.appendChild(chip);
     });
 }
 
-/**
- * سیستم امتیازدهی اصلاح شده
- * استفاده از تابع گوسی برای اعداد جهت پاداش به نزدیکی و جریمه ملایم دوری
- */
 function updateResults() {
     if (!database) return;
     const resBox = document.getElementById("results");
     resBox.innerHTML = "";
 
-    const activeEntries = Object.entries(selectedAnswers).filter(([_, v]) => v !== null && v !== undefined);
+    const hasAnyAnswer = Object.values(selectedAnswers).some(v => v !== undefined);
     let finalFlatResults = [];
 
     database.fonts.forEach(font => {
-        const checkMatch = (data) => {
-            let totalScore = 0;
-            if (activeEntries.length === 0) return 0;
-
-            activeEntries.forEach(([key, userVal]) => {
-                let fontVal = data[key] !== undefined ? data[key] : (font.features ? font.features[key] : undefined);
+        const calculateScore = (data) => {
+            let score = 0, total = 0;
+            featureKeys.forEach(key => {
+                const userVal = selectedAnswers[key];
+                if (userVal == null) return;
+                let fontVal = data[key] ?? font.features[key];
                 if (fontVal === undefined) return;
 
                 if (Array.isArray(fontVal)) {
-                    totalScore += fontVal.includes(userVal) ? 1 : 0;
-                } else if (typeof fontVal === 'number' && typeof userVal === 'number') {
-                    // اصلاح باگ امتیازدهی: استفاده از معکوس فاصله خطی با دقت بیشتر
-                    const diff = Math.abs(fontVal - userVal);
-                    totalScore += Math.max(0, 1 - (diff * 1.5)); // جریمه منطقی برای فاصله
+                    score += fontVal.includes(userVal) ? 1 : 0;
+                } else if (typeof fontVal === 'number') {
+                    score += Math.max(0, 1 - Math.abs(fontVal - userVal));
                 } else {
-                    totalScore += (fontVal === userVal) ? 1 : 0;
+                    score += (fontVal === userVal) ? 1 : 0;
                 }
+                total++;
             });
-            return totalScore / activeEntries.length;
+            return total > 0 ? (score / total) : 0;
         };
 
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
-                const s = checkMatch(font.weights[wName]);
-                finalFlatResults.push({ ...font, weight: wName, score: s });
+                const s = hasAnyAnswer ? calculateScore(font.weights[wName]) : 0;
+                finalFlatResults.push({ name: font.name, url: font.url, weight: wName, score: s });
             });
         } else {
-            const s = checkMatch(font.features || {});
-            finalFlatResults.push({ ...font, weight: null, score: s });
+            const s = hasAnyAnswer ? calculateScore(font.features) : 0;
+            finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
         }
     });
 
-    // مرتب‌سازی
-    if (activeEntries.length === 0) {
-        finalFlatResults = finalFlatResults.sort(() => Math.random() - 0.5).slice(0, 8);
+    if (!hasAnyAnswer) {
+        finalFlatResults = finalFlatResults.sort(() => Math.random() - 0.5).slice(0, 10);
     } else {
-        finalFlatResults = finalFlatResults
-            .filter(r => r.score > 0.1)
-            .sort((a, b) => b.score - a.score);
+        finalFlatResults = finalFlatResults.filter(r => r.score > 0).sort((a, b) => b.score - a.score);
     }
 
-    if (finalFlatResults.length === 0) {
-        resBox.innerHTML = "<p style='color:var(--text-light); text-align:center; font-size:13px;'>موردی با این مشخصات یافت نشد.</p>";
+    if (finalFlatResults.length === 0 && hasAnyAnswer) {
+        resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>نتیجه‌ای یافت نشد.</p>";
         return;
     }
 
     finalFlatResults.forEach(res => {
         const div = document.createElement("div");
         div.className = "result-item";
+        const fontSize = 13 + (res.score * 4);
+        const fontWeight = 400 + Math.round(res.score * 500);
+
         div.innerHTML = `
             <a href="${res.url || '#'}" target="_blank" class="font-link">
-                <span class="font-name" style="font-weight: ${res.weight?.includes('Bold') ? 'bold' : 'normal'}">${res.name}</span>
+                <span class="font-name" style="font-size: ${fontSize}px; font-weight: ${fontWeight};">${res.name}</span>
                 ${res.weight ? `<span class="weight-name">${res.weight}</span>` : ''}
             </a>
-            <span class="match-score">${Math.round(res.score * 100)}%</span>
+            ${hasAnyAnswer ? `<span class="match-score">${Math.round(res.score * 100)}%</span>` : ''}
         `;
         resBox.appendChild(div);
     });
