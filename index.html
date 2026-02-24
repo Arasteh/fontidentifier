@@ -397,7 +397,6 @@ function renderQuestion() {
         const visualWrap = document.createElement("div");
         visualWrap.className = "visual-container";
         if (key === 'contrast') {
-            // Circle Contrast Visual
             visualWrap.innerHTML = `
                 <div class="contrast-visual">
                     <div class="circle-wrapper"><div class="circle fixed"></div></div>
@@ -415,7 +414,6 @@ function renderQuestion() {
                 const dynCircle = document.getElementById('dynCircle');
                 const scoreLabel = document.getElementById('contrastVal');
                 
-                // Update circle size (100% size at 0, ~1% size at 1.0)
                 const newSize = 60 * (1 - newScore * 0.99);
                 dynCircle.style.width = newSize + "px";
                 dynCircle.style.height = newSize + "px";
@@ -427,7 +425,6 @@ function renderQuestion() {
                 if (nextBtn.innerText.includes("نمی‌دانم")) nextBtn.innerText = "بعدی";
             });
         } else {
-            // Bars Ratio Visual
             visualWrap.innerHTML = `
                 <div class="ratio-visual" id="barVisual">
                     <div class="rect" id="dragRect" style="height: ${val * 100}%"><span class="rect-label">${Math.round(val*100)}%</span></div>
@@ -509,7 +506,7 @@ function updateResults() {
                 total++;
                 let fontVal = data[key] ?? font.features[key];
                 if (fontVal === undefined || fontVal === null) {
-                    return; // امتیاز صفر برای ویژگی از دست رفته (اصلاح باگ)
+                    return;
                 }
                 if (Array.isArray(fontVal)) {
                     score += fontVal.includes(userVal) ? 1 : 0;
@@ -519,7 +516,8 @@ function updateResults() {
                     score += (fontVal === userVal) ? 1 : 0;
                 }
             });
-            return total > 0 ? (score / total) : 0;
+            // امتیازدهی غیرخطی (توان ۲) تا اختلاف بین فونت‌های نزدیک (مثل ۴ از ۵ در مقابل ۳ از ۵) بسیار بیشتر و نمایان‌تر شود
+            return total > 0 ? Math.pow(score / total, 2) : 0;
         };
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
