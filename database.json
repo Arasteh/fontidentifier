@@ -33,6 +33,11 @@
 		"heh_initial_height_ratio_to_alif": {
 			"label_fa": "نسبت ارتفاع ح اول به الف",
 			"type": "numeric"
+		},
+		"beh_end_vs_start": {
+			"label_fa": "انتهای ب نسبت به ابتدایش",
+			"type": "categorical",
+			"values": ["بالاتر", "برابر","پایین‌تر"]
 		}
 	},
 	"fonts": [
@@ -44,7 +49,8 @@
 		"dot_shape": ["لوزی"],
 		"mid_ein_loop": ["توخالی"],
 		"meem_loop": ["بسته"],
-		"script_style": ["نسخ"]
+		"script_style": ["نسخ"],
+		"beh_end_vs_start": ["پایین‌تر"]
 	},
 	"weights": {
 		"regular": {
@@ -65,7 +71,8 @@
 				"dot_shape": ["لوزی", "پیوسته"],
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["پایین‌تر"]
 			},
 	"weights": {
 		"regular": {
@@ -88,7 +95,8 @@
 				"contrast": 0.8,
 				"mid_ein_loop": ["توپر"],
 				"meem_loop": ["باز"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["پایین‌تر"]
 			}
 		},
 		{
@@ -101,7 +109,8 @@
 				"contrast": 0.1,
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["برابر"]
 			}
 		},
 		{
@@ -114,7 +123,8 @@
 				"contrast": 0,
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
-				"script_style": ["دست‌نویس"]
+				"script_style": ["دست‌نویس"],
+		"beh_end_vs_start": ["برابر"]
 			}
 		},
 		{
@@ -127,7 +137,8 @@
 				"contrast": 0.1,
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["برابر"]
 			}
 		},
 		{
@@ -140,7 +151,8 @@
 				"contrast": 0,
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["برابر"]
 			}
 		},
 		{
@@ -153,7 +165,8 @@
 				"contrast": 0,
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
-				"script_style": ["نسخ", "دست‌نویس"]
+				"script_style": ["نسخ", "دست‌نویس"],
+		"beh_end_vs_start": ["برابر"]
 			}
 		},
 		{
@@ -166,7 +179,8 @@
 				"contrast": 0.8,
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["باز"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["برابر"]
 			}
 		},
 		{
@@ -179,7 +193,8 @@
 				"contrast": 0.5,
 				"mid_ein_loop": ["توپر"],
 				"meem_loop": ["توپر"],
-				"script_style": ["نستعلیق"]
+				"script_style": ["نستعلیق"],
+		"beh_end_vs_start": ["پایین‌تر"]
 			}
 		},
 		{
@@ -192,7 +207,8 @@
 				"contrast": 0.4,
 				"mid_ein_loop": ["توپر"],
 				"meem_loop": ["بسته"],
-				"script_style": ["نسخ"]
+				"script_style": ["نسخ"],
+		"beh_end_vs_start": ["پایین‌تر"]
 			}
 		}
 	]
