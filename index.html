@@ -40,7 +40,6 @@
         }
         .chip.selected { background: var(--primary); color: white; }
         .chip.history { background: #e8f0ff; color: var(--primary); font-size: 11px; padding: 4px 10px; }
-
         /* Generic Visual Container */
         .visual-container {
             margin: 20px 0;
@@ -53,7 +52,6 @@
             align-items: center;
             gap: 20px;
         }
-
         /* Ratio Visual (Bars) */
         .ratio-visual {
             display: flex;
@@ -84,7 +82,6 @@
             font-weight: bold;
             white-space: nowrap;
         }
-
         /* Contrast Visual (Circles) */
         .contrast-visual {
             display: flex;
@@ -109,14 +106,12 @@
         }
         .circle.fixed { width: 60px; height: 60px; background: #ddd; }
         .circle.dynamic { width: 60px; height: 60px; }
-
         /* Slider */
         .slider-box { width: 100%; max-width: 300px; }
         input[type=range] {
             width: 100%;
             cursor: pointer;
         }
-
         /* Results - Ultra Compact Style */
         .result-item {
             padding: 8px 12px;
@@ -151,27 +146,66 @@
             opacity: 0.8;
             font-weight: bold;
         }
-
         .controls { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border); }
         button { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; background: #eee; font-family: inherit; font-size: 13px; transition: 0.2s; }
         button#nextBtn { background: var(--primary); color: white; }
         .hidden { display: none; }
-
         @media(max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+        /* حالت تاریک خودکار */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111111;
+                --card: #1e1e1e;
+                --text: #e5e5e5;
+                --border: #383838;
+            }
+            .chip {
+                background: #2a2a2a;
+                color: #c0c0c0;
+            }
+            .chip.history {
+                background: #1f2a44;
+                color: var(--primary);
+            }
+            .visual-container {
+                background: #1a1a1a;
+                border-color: #4a4a4a;
+            }
+            .rect.base {
+                background: #4a4a4a;
+            }
+            .circle.fixed {
+                background: #555555;
+            }
+            .result-item {
+                background: var(--card);
+                border-color: var(--border);
+            }
+            .weight-name {
+                background: #333333;
+                color: #aaaaaa;
+            }
+            button {
+                background: #2a2a2a;
+                color: #dddddd;
+            }
+            h3 {
+                color: #ccc;
+                border-bottom-color: var(--border);
+            }
+        }
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1>جستجوگر فونت</h1>
-
     <div class="layout">
         <div class="card">
             <div id="historyChips" style="margin-bottom: 15px;"></div>
             <div id="questionContainer">
                 <p style="text-align:center; color:#888;">در حال بارگذاری داده‌ها...</p>
             </div>
-
             <div class="controls">
                 <div>
                     <button onclick="prevStep()">قبلی</button>
@@ -180,20 +214,17 @@
                 <button onclick="resetAll()" style="color: #888; background: transparent;">شروع از نو</button>
             </div>
         </div>
-
         <div class="card">
             <h3>نتایج تطبیق یافته</h3>
             <div id="results"></div>
         </div>
     </div>
 </div>
-
 <script>
 let database = null;
 let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
-
 async function init() {
     try {
         const response = await fetch('database.json');
@@ -208,8 +239,88 @@ async function init() {
             };
         }
 
-        featureKeys = Object.keys(database.features);
+        // ترتیب سؤال‌ها بر اساس قدرت تمایز داده‌های واقعی (داینامیک و خودکار با اضافه شدن فونت/ویژگی جدید)
+        const originalOrder = Object.keys(database.features);
+        featureKeys = [...originalOrder];
         loadFromURL();
+
+        const buildInstances = () => {
+            let instances = [];
+            database.fonts.forEach(font => {
+                const base = font.features || {};
+                if (font.weights && typeof font.weights === 'object' && Object.keys(font.weights).length > 0) {
+                    Object.keys(font.weights).forEach(wName => {
+                        const wFeat = font.weights[wName] || {};
+                        const inst = { ...base, ...wFeat };
+                        instances.push(inst);
+                    });
+                } else {
+                    instances.push({ ...base });
+                }
+            });
+            return instances;
+        };
+        const instances = buildInstances();
+
+        const computeDistinction = (key) => {
+            const feat = database.features[key];
+            if (!feat) return 0;
+            const vals = instances.map(i => i[key]).filter(v => v !== undefined && v !== null);
+            if (vals.length < 2) return 0;
+            let entropy = 0;
+            const total = vals.length;
+            if (feat.type === "numeric") {
+                const minV = Math.min(...vals);
+                const maxV = Math.max(...vals);
+                if (minV === maxV) return 0;
+                const numBins = 10;
+                const binCounts = new Array(numBins).fill(0);
+                const range = maxV - minV;
+                vals.forEach(v => {
+                    let bin = Math.floor(((v - minV) / range) * (numBins - 1e-10));
+                    bin = Math.max(0, Math.min(numBins - 1, bin));
+                    binCounts[bin]++;
+                });
+                binCounts.forEach(c => {
+                    if (c > 0) {
+                        const p = c / total;
+                        entropy -= p * Math.log2(p);
+                    }
+                });
+            } else {
+                const valueCounts = {};
+                vals.forEach(v => {
+                    let sig;
+                    if (Array.isArray(v)) {
+                        const uniqueSorted = [...new Set(v.map(String))].sort();
+                        sig = JSON.stringify(uniqueSorted);
+                    } else {
+                        sig = String(v);
+                    }
+                    valueCounts[sig] = (valueCounts[sig] || 0) + 1;
+                });
+                Object.values(valueCounts).forEach(c => {
+                    if (c > 0) {
+                        const p = c / total;
+                        entropy -= p * Math.log2(p);
+                    }
+                });
+            }
+            return entropy;
+        };
+
+        const distinctionMap = {};
+        originalOrder.forEach(key => {
+            distinctionMap[key] = computeDistinction(key);
+        });
+
+        // اعمال ترتیب جدید (بیشترین تمایز اول) بدون تغییر در بارگذاری URL
+        featureKeys = [...originalOrder].sort((a, b) => {
+            const diff = (distinctionMap[b] || 0) - (distinctionMap[a] || 0);
+            if (diff !== 0) return diff;
+            return originalOrder.indexOf(a) - originalOrder.indexOf(b);
+        });
+
         renderQuestion();
         updateResults();
     } catch (error) {
@@ -218,7 +329,6 @@ async function init() {
             `<p style="color:red; text-align:center;">خطا در بارگذاری دیتابیس. لطفا فایل database.json را بررسی کنید.</p>`;
     }
 }
-
 function updateURL() {
     if (!database) return;
     let compressed = "";
@@ -231,7 +341,6 @@ function updateURL() {
     });
     history.replaceState(null, "", "?f=" + compressed);
 }
-
 function loadFromURL() {
     if (!database) return;
     const params = new URLSearchParams(location.search);
@@ -246,7 +355,6 @@ function loadFromURL() {
         else selectedAnswers[key] = parseInt(char) / 10;
     });
 }
-
 function renderQuestion() {
     if (!database) return;
     const key = featureKeys[currentStep];
@@ -256,7 +364,6 @@ function renderQuestion() {
     
     container.innerHTML = `<h4 style="margin:0 0 15px 0; color:#555;">${feature.label_fa}</h4>`;
     renderHistory();
-
     const currentVal = selectedAnswers[key];
     
     // Button state management
@@ -269,7 +376,6 @@ function renderQuestion() {
         nextBtn.classList.remove("hidden");
         nextBtn.innerText = (currentVal == null) ? "نمی‌دانم / بعدی" : "بعدی";
     }
-
     if (feature.type === "categorical") {
         const chipContainer = document.createElement("div");
         feature.values.forEach(val => {
@@ -286,12 +392,10 @@ function renderQuestion() {
         });
         container.appendChild(chipContainer);
     }
-
     if (feature.type === "numeric") {
         const val = currentVal ?? 0.5;
         const visualWrap = document.createElement("div");
         visualWrap.className = "visual-container";
-
         if (key === 'contrast') {
             // Circle Contrast Visual
             visualWrap.innerHTML = `
@@ -345,13 +449,11 @@ function renderQuestion() {
                     dragRect.style.height = (roundedVal * 100) + "%";
                     dragRect.querySelector('.rect-label').innerText = Math.round(roundedVal * 100) + "%";
                 }
-
                 selectedAnswers[key] = roundedVal;
                 updateURL();
                 updateResults();
                 if (nextBtn.innerText.includes("نمی‌دانم")) nextBtn.innerText = "بعدی";
             };
-
             visual.addEventListener('mousedown', (e) => { isDragging = true; handleInteraction(e); });
             window.addEventListener('mouseup', () => { isDragging = false; });
             window.addEventListener('mousemove', (e) => { if (isDragging) handleInteraction(e); });
@@ -363,7 +465,6 @@ function renderQuestion() {
         container.appendChild(visualWrap);
     }
 }
-
 function nextStep() {
     if (currentStep < featureKeys.length - 1) {
         const key = featureKeys[currentStep];
@@ -376,11 +477,9 @@ function nextStep() {
         renderQuestion();
     }
 }
-
 function prevStep() {
     if (currentStep > 0) { currentStep--; renderQuestion(); }
 }
-
 function renderHistory() {
     if (!database) return;
     const box = document.getElementById("historyChips");
@@ -394,24 +493,24 @@ function renderHistory() {
         box.appendChild(chip);
     });
 }
-
 function updateResults() {
     if (!database) return;
     const resBox = document.getElementById("results");
     resBox.innerHTML = "";
-
-    const hasAnyAnswer = Object.values(selectedAnswers).some(v => v !== undefined);
+    const hasAnyAnswer = Object.values(selectedAnswers).some(v => v !== undefined && v !== null);
     let finalFlatResults = [];
-
     database.fonts.forEach(font => {
         const calculateScore = (data) => {
-            let score = 0, total = 0;
+            let score = 0;
+            let total = 0;
             featureKeys.forEach(key => {
                 const userVal = selectedAnswers[key];
                 if (userVal == null) return;
+                total++;
                 let fontVal = data[key] ?? font.features[key];
-                if (fontVal === undefined) return;
-
+                if (fontVal === undefined || fontVal === null) {
+                    return; // امتیاز صفر برای ویژگی از دست رفته (اصلاح باگ)
+                }
                 if (Array.isArray(fontVal)) {
                     score += fontVal.includes(userVal) ? 1 : 0;
                 } else if (typeof fontVal === 'number') {
@@ -419,11 +518,9 @@ function updateResults() {
                 } else {
                     score += (fontVal === userVal) ? 1 : 0;
                 }
-                total++;
             });
             return total > 0 ? (score / total) : 0;
         };
-
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
                 const s = hasAnyAnswer ? calculateScore(font.weights[wName]) : 0;
@@ -434,24 +531,20 @@ function updateResults() {
             finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
         }
     });
-
     if (!hasAnyAnswer) {
         finalFlatResults = finalFlatResults.sort(() => Math.random() - 0.5).slice(0, 10);
     } else {
         finalFlatResults = finalFlatResults.filter(r => r.score > 0).sort((a, b) => b.score - a.score);
     }
-
     if (finalFlatResults.length === 0 && hasAnyAnswer) {
         resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>نتیجه‌ای یافت نشد.</p>";
         return;
     }
-
     finalFlatResults.forEach(res => {
         const div = document.createElement("div");
         div.className = "result-item";
         const fontSize = 13 + (res.score * 4);
         const fontWeight = 400 + Math.round(res.score * 500);
-
         div.innerHTML = `
             <a href="${res.url || '#'}" target="_blank" class="font-link">
                 <span class="font-name" style="font-size: ${fontSize}px; font-weight: ${fontWeight};">${res.name}</span>
@@ -462,7 +555,6 @@ function updateResults() {
         resBox.appendChild(div);
     });
 }
-
 function resetAll() {
     selectedAnswers = {};
     currentStep = 0;
@@ -470,7 +562,6 @@ function resetAll() {
     renderQuestion();
     updateResults();
 }
-
 init();
 </script>
 </body>
