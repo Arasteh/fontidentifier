@@ -1,199 +1,199 @@
 {
-  "version": "0.1",
-  "features": {
-    "script_style": {
-      "label_fa": "شیوهٔ نوشتاری",
-      "type": "categorical",
-      "values": ["نسخ", "نستعلیق", "دست‌نویس", "ثلث", "ریحان/محقق", "کوفی", "هندسی"]
-    },
-    "contrast": {
-      "label_fa": "کنتراست ضخامت",
-      "type": "numeric"
-    },
-    "dot_shape": {
-      "label_fa": "شکل نقطه‌ها",
-      "type": "categorical",
-      "values": ["دایره", "لوزی", "مربع", "پیوسته"]
-    },
-    "heh_initial_loop": {
-      "label_fa": "حلقه ح اول",
-      "type": "categorical",
-      "values": ["باز", "بسته"]
-    },
-    "mid_ein_loop": {
-      "label_fa": "حلقهٔ ـعـ وسط",
-      "type": "categorical",
-      "values": ["توخالی", "توپر"]
-    },
-    "meem_loop": {
-      "label_fa": "حلقهٔ م تنها",
-      "type": "categorical",
-      "values": ["باز", "بسته","توپر"]
-    },
-    "heh_initial_height_ratio_to_alif": {
-      "label_fa": "نسبت ارتفاع ح اول به الف",
-      "type": "numeric"
-    }
-  },
-  "fonts": [
-    {
-  "name": "شازده",
-  "url": "https://fontiran.com/fonts/shazde",
-  "features": {
-    "heh_initial_loop": ["باز"],
-    "dot_shape": ["لوزی"]
-  },
-  "weights": {
-    "regular": {
-      "heh_initial_height_ratio_to_alif": 0.7,
-        "contrast": 0.1
-    },
-    "black": {
-      "heh_initial_height_ratio_to_alif": 0.8,
-        "contrast": 0.2
-    }
-  },
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ"]
+	"version": "0.1",
+	"features": {
+		"script_style": {
+			"label_fa": "شیوهٔ نوشتاری",
+			"type": "categorical",
+			"values": ["نسخ", "نستعلیق", "دست‌نویس", "ثلث", "ریحان/محقق", "کوفی", "هندسی"]
+		},
+		"contrast": {
+			"label_fa": "کنتراست ضخامت",
+			"type": "numeric"
+		},
+		"dot_shape": {
+			"label_fa": "شکل نقطه‌ها",
+			"type": "categorical",
+			"values": ["دایره", "لوزی", "مربع", "پیوسته"]
+		},
+		"heh_initial_loop": {
+			"label_fa": "حلقه ح اول",
+			"type": "categorical",
+			"values": ["باز", "بسته"]
+		},
+		"mid_ein_loop": {
+			"label_fa": "حلقهٔ ـعـ وسط",
+			"type": "categorical",
+			"values": ["توخالی", "توپر"]
+		},
+		"meem_loop": {
+			"label_fa": "حلقهٔ م تنها",
+			"type": "categorical",
+			"values": ["باز", "بسته","توپر"]
+		},
+		"heh_initial_height_ratio_to_alif": {
+			"label_fa": "نسبت ارتفاع ح اول به الف",
+			"type": "numeric"
+		}
+	},
+	"fonts": [
+		{
+	"name": "شازده",
+	"url": "https://fontiran.com/fonts/shazde",
+	"features": {
+		"heh_initial_loop": ["باز"],
+		"dot_shape": ["لوزی"],
+		"mid_ein_loop": ["توخالی"],
+		"meem_loop": ["بسته"],
+		"script_style": ["نسخ"]
+	},
+	"weights": {
+		"regular": {
+			"heh_initial_height_ratio_to_alif": 0.7,
+			"contrast": 0.1
+		},
+		"black": {
+			"heh_initial_height_ratio_to_alif": 0.8,
+			"contrast": 0.2
+		}
+	}
 },
-    {
-      "name": "دوران",
-  "url": "https://fontiran.com/fonts/doran",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "dot_shape": ["لوزی", "پیوسته"]
-      },
-  "weights": {
-    "regular": {
-      "heh_initial_height_ratio_to_alif": 0.5,
-        "contrast": 0.8
-    },
-    "black": {
-      "heh_initial_height_ratio_to_alif": 0.6,
-        "contrast": 1
-    }
-  },
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ"]
-    },
-    {
-      "name": "مصحفی",
-  "url": "https://www.diwan.com/index.php/products/fonts/35-mishafi-with-quran-glossary",
-      "features": {
-        "heh_initial_loop": ["بسته"],
-        "heh_initial_height_ratio_to_alif": 0.3,
-        "dot_shape": ["لوزی"],
-        "contrast": 0.8,
-        "mid_ein_loop": ["توپر"],
-        "meem_loop": ["باز"],
-        "script_style": ["نسخ"]
-      }
-    },
-    {
-      "name": "انجمن",
-  "url": "https://fontiran.com/fonts/anjoman",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["لوزی"],
-        "contrast": 0.1,
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ"]
-      }
-    },
-    {
-      "name": "فرزاد",
-  "url": "https://maryamsoft.com/FontShop/font.aspx?name=Farzad",
-      "features": {
-        "heh_initial_loop": ["بسته"],
-        "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["دایره"],
-        "contrast": 0,
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["دست‌نویس"]
-      }
-    },
-    {
-      "name": "ردیف",
-  "url": "https://maryamsoft.com/FontShop/font.aspx?name=Radif",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["لوزی", "مربع"],
-        "contrast": 0.1,
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ"]
-      }
-    },
-    {
-      "name": "استعداد",
-  "url": "https://aminabedi68.github.io/Estedad/",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.5,
-        "dot_shape": ["لوزی"],
-        "contrast": 0,
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ"]
-      }
-    },
-    {
-      "name": "میخک",
-  "url": "https://aminabedi68.github.io/Mikhak/",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.6,
-        "dot_shape": ["دایره", "پیوسته"],
-        "contrast": 0,
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ", "دست‌نویس"]
-      }
-    },
-    {
-      "name": "ماد",
-  "url": "https://fontiran.com/fonts/mad",
-      "features": {
-        "heh_initial_loop": ["باز"],
-        "heh_initial_height_ratio_to_alif": 0.7,
-        "dot_shape": ["مربع", "پیوسته"],
-        "contrast": 0.8,
-        "mid_ein_loop": ["توخالی"],
-        "meem_loop": ["باز"],
-        "script_style": ["نسخ"]
-      }
-    },
-    {
-      "name": "پسته",
-  "url": "https://fontiran.com/fonts/pesteh",
-      "features": {
-        "heh_initial_loop": ["باز","بسته"],
-        "heh_initial_height_ratio_to_alif": 0.4,
-        "dot_shape": ["لوزی"],
-        "contrast": 0.5,
-        "mid_ein_loop": ["توپر"],
-        "meem_loop": ["توپر"],
-        "script_style": ["نستعلیق"]
-      }
-    },
-    {
-      "name": "دیبا",
-  "url": "https://fontiran.com/fonts/pesteh",
-      "features": {
-        "heh_initial_loop": ["بسته"],
-        "heh_initial_height_ratio_to_alif": 0.8,
-        "dot_shape": ["لوزی"],
-        "contrast": 0.4,
-        "mid_ein_loop": ["توپر"],
-        "meem_loop": ["بسته"],
-        "script_style": ["نسخ"]
-      }
-    }
-  ]
+		{
+			"name": "دوران",
+	"url": "https://fontiran.com/fonts/doran",
+			"features": {
+				"heh_initial_loop": ["باز"],
+				"dot_shape": ["لوزی", "پیوسته"],
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["بسته"],
+				"script_style": ["نسخ"]
+			},
+	"weights": {
+		"regular": {
+			"heh_initial_height_ratio_to_alif": 0.5,
+				"contrast": 0.8
+		},
+		"black": {
+			"heh_initial_height_ratio_to_alif": 0.6,
+				"contrast": 1
+		}
+	}
+		},
+		{
+			"name": "مصحفی",
+	"url": "https://www.diwan.com/index.php/products/fonts/35-mishafi-with-quran-glossary",
+			"features": {
+				"heh_initial_loop": ["بسته"],
+				"heh_initial_height_ratio_to_alif": 0.3,
+				"dot_shape": ["لوزی"],
+				"contrast": 0.8,
+				"mid_ein_loop": ["توپر"],
+				"meem_loop": ["باز"],
+				"script_style": ["نسخ"]
+			}
+		},
+		{
+			"name": "انجمن",
+	"url": "https://fontiran.com/fonts/anjoman",
+			"features": {
+				"heh_initial_loop": ["باز"],
+				"heh_initial_height_ratio_to_alif": 0.5,
+				"dot_shape": ["لوزی"],
+				"contrast": 0.1,
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["بسته"],
+				"script_style": ["نسخ"]
+			}
+		},
+		{
+			"name": "فرزاد",
+	"url": "https://maryamsoft.com/FontShop/font.aspx?name=Farzad",
+			"features": {
+				"heh_initial_loop": ["بسته"],
+				"heh_initial_height_ratio_to_alif": 0.5,
+				"dot_shape": ["دایره"],
+				"contrast": 0,
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["بسته"],
+				"script_style": ["دست‌نویس"]
+			}
+		},
+		{
+			"name": "ردیف",
+	"url": "https://maryamsoft.com/FontShop/font.aspx?name=Radif",
+			"features": {
+				"heh_initial_loop": ["باز"],
+				"heh_initial_height_ratio_to_alif": 0.5,
+				"dot_shape": ["لوزی", "مربع"],
+				"contrast": 0.1,
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["بسته"],
+				"script_style": ["نسخ"]
+			}
+		},
+		{
+			"name": "استعداد",
+	"url": "https://aminabedi68.github.io/Estedad/",
+			"features": {
+				"heh_initial_loop": ["باز"],
+				"heh_initial_height_ratio_to_alif": 0.5,
+				"dot_shape": ["لوزی"],
+				"contrast": 0,
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["بسته"],
+				"script_style": ["نسخ"]
+			}
+		},
+		{
+			"name": "میخک",
+	"url": "https://aminabedi68.github.io/Mikhak/",
+			"features": {
+				"heh_initial_loop": ["باز"],
+				"heh_initial_height_ratio_to_alif": 0.6,
+				"dot_shape": ["دایره", "پیوسته"],
+				"contrast": 0,
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["بسته"],
+				"script_style": ["نسخ", "دست‌نویس"]
+			}
+		},
+		{
+			"name": "ماد",
+	"url": "https://fontiran.com/fonts/mad",
+			"features": {
+				"heh_initial_loop": ["باز"],
+				"heh_initial_height_ratio_to_alif": 0.7,
+				"dot_shape": ["مربع", "پیوسته"],
+				"contrast": 0.8,
+				"mid_ein_loop": ["توخالی"],
+				"meem_loop": ["باز"],
+				"script_style": ["نسخ"]
+			}
+		},
+		{
+			"name": "پسته",
+	"url": "https://fontiran.com/fonts/pesteh",
+			"features": {
+				"heh_initial_loop": ["باز","بسته"],
+				"heh_initial_height_ratio_to_alif": 0.4,
+				"dot_shape": ["لوزی"],
+				"contrast": 0.5,
+				"mid_ein_loop": ["توپر"],
+				"meem_loop": ["توپر"],
+				"script_style": ["نستعلیق"]
+			}
+		},
+		{
+			"name": "دیبا",
+	"url": "https://fontiran.com/fonts/pesteh",
+			"features": {
+				"heh_initial_loop": ["بسته"],
+				"heh_initial_height_ratio_to_alif": 0.8,
+				"dot_shape": ["لوزی"],
+				"contrast": 0.4,
+				"mid_ein_loop": ["توپر"],
+				"meem_loop": ["بسته"],
+				"script_style": ["نسخ"]
+			}
+		}
+	]
 }
