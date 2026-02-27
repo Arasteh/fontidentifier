@@ -181,7 +181,6 @@
         button#nextBtn { background: var(--primary); color: white; }
         .hidden { display: none; }
 
-        /* مقایسه */
         #compareTable {
             width: 100%;
             border-collapse: collapse;
@@ -294,6 +293,13 @@ let currentStep = 0;
 let selectedAnswers = {};
 let allFontOptions = [];
 
+// ====================== تنظیم ترتیب سؤالات (جدید) ======================
+// اینجا سؤال‌هایی که می‌خواهید همیشه اول پرسیده شوند را به ترتیب دلخواه بنویسید:
+// مثال: const priorityFeatures = ["lam_alef_shape", "mono_contrast"];
+// اگر هیچ اولویتی نمی‌خواهید و همه سؤال‌ها فقط بر اساس تمایز مرتب شوند:
+// const priorityFeatures = [];
+const priorityFeatures = ["mono_contrast", "lam_alef_shape"];
+
 async function init() {
     try {
         const response = await fetch('database.json');
@@ -319,12 +325,16 @@ async function init() {
             values: ["پایین مثلثی", "ساده پیوسته", "ساده جدا"]
         };
 
+        // لیست اولیه همه ویژگی‌ها
         const originalKeys = Object.keys(database.features)
             .filter(k => k !== "mono_contrast" && k !== "lam_alef_shape");
+
+        // لیست موقت برای محاسبه تمایز (همه ویژگی‌ها)
         featureKeys = ["mono_contrast", "lam_alef_shape", ...originalKeys];
 
         loadFromURL();
 
+        // ساخت allFontOptions برای مقایسه و محاسبه تمایز
         allFontOptions = [];
         database.fonts.forEach(font => {
             const base = font.features || {};
@@ -404,7 +414,23 @@ async function init() {
             distinctionMap[key] = computeDistinction(key);
         });
 
-        featureKeys.sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
+        // ====================== اعمال ترتیب جدید (اولویت + تمایز) ======================
+        let orderedKeys = [];
+        if (priorityFeatures.length > 0) {
+            // اول سؤال‌های اولویت‌دار به ترتیب دلخواه کاربر
+            priorityFeatures.forEach(key => {
+                if (featureKeys.includes(key)) orderedKeys.push(key);
+            });
+            // سپس بقیه ویژگی‌ها بر اساس بیشترین تمایز
+            const remaining = featureKeys.filter(k => !priorityFeatures.includes(k));
+            remaining.sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
+            orderedKeys = [...orderedKeys, ...remaining];
+        } else {
+            // هیچ اولویتی مشخص نشده → همه بر اساس تمایز
+            orderedKeys = [...featureKeys].sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
+        }
+
+        featureKeys = orderedKeys;
 
         populateCompareSelects();
         renderQuestion();
