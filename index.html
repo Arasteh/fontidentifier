@@ -39,6 +39,7 @@
         }
         .chip.selected { background: var(--primary); color: white; }
         .chip.history { background: #e8f0ff; color: var(--primary); font-size: 11px; padding: 4px 10px; }
+        
         .visual-container {
             margin: 20px 0;
             background: #fdfdfd;
@@ -209,16 +210,24 @@ async function init() {
             };
         }
 
-        // اضافه کردن ویژگی جدید بدون تغییر بقیه
+        // ویژگی ۱: مونولاین یا باکنتراست
         database.features.mono_contrast = {
             label_fa: "مونولاین یا باکنتراست",
             type: "categorical",
             values: ["مونولاین", "باکُنتراست"]
         };
 
-        // فقط ویژگی جدید را به ابتدای لیست اضافه می‌کنیم — ترتیب قبلی حفظ می‌شود
-        const originalKeys = Object.keys(database.features).filter(k => k !== "mono_contrast");
-        featureKeys = ["mono_contrast", ...originalKeys];
+        // ویژگی ۲: شکل ترکیب لا
+        database.features.lam_alef_shape = {
+            label_fa: "شکل ترکیب «لا»",
+            type: "categorical",
+            values: ["پایین مثلثی", "ساده پیوسته", "ساده جدا"]
+        };
+
+        // اضافه کردن هر دو به ابتدای لیست
+        const originalKeys = Object.keys(database.features)
+            .filter(k => k !== "mono_contrast" && k !== "lam_alef_shape");
+        featureKeys = ["mono_contrast", "lam_alef_shape", ...originalKeys];
 
         loadFromURL();
 
@@ -230,6 +239,7 @@ async function init() {
                     Object.keys(font.weights).forEach(wName => {
                         const wFeat = font.weights[wName] || {};
                         const inst = { ...base, ...wFeat };
+                        // محاسبه مونولاین/باکُنتراست برای این وزن
                         if (inst.contrast !== undefined) {
                             inst.mono_contrast = inst.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
                         }
@@ -294,8 +304,8 @@ async function init() {
             distinctionMap[key] = computeDistinction(key);
         });
 
-        // مرتب‌سازی بر اساس تمایز (اختیاری — اگر نمی‌خواهید تغییر کند، این بخش را کامنت کنید)
-        //featureKeys.sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
+        // اگر نمی‌خواهی هر بار ترتیب عوض شود → این خط را کامنت کن
+        featureKeys.sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
 
         renderQuestion();
         updateResults();
@@ -313,7 +323,10 @@ function updateURL() {
         const val = selectedAnswers[key];
         if (val === undefined) compressed += "x";
         else if (val === null) compressed += "u";
-        else if (database.features[key].type === "categorical") compressed += database.features[key].values.indexOf(val);
+        else if (database.features[key].type === "categorical") {
+            const idx = database.features[key].values.indexOf(val);
+            compressed += (idx >= 0 ? idx : "u");
+        }
         else compressed += Math.round(val * 10);
     });
     history.replaceState(null, "", "?f=" + compressed);
@@ -329,8 +342,14 @@ function loadFromURL() {
         if (!char || char === "x") return;
         if (char === "u") { selectedAnswers[key] = null; return; }
         const feat = database.features[key];
-        if (feat.type === "categorical") selectedAnswers[key] = feat.values[parseInt(char)];
-        else selectedAnswers[key] = parseInt(char) / 10;
+        if (feat.type === "categorical") {
+            const idx = parseInt(char);
+            if (!isNaN(idx) && idx >= 0 && idx < feat.values.length) {
+                selectedAnswers[key] = feat.values[idx];
+            }
+        } else {
+            selectedAnswers[key] = parseInt(char) / 10;
+        }
     });
 }
 
@@ -465,6 +484,7 @@ function renderHistory() {
     box.innerHTML = "";
     Object.keys(selectedAnswers).forEach(key => {
         const val = selectedAnswers[key];
+        if (val === undefined) return;
         const chip = document.createElement("div");
         chip.className = "chip history";
         chip.innerText = `${database.features[key].label_fa}: ${val === null ? '؟' : val}`;
@@ -487,9 +507,10 @@ function updateResults() {
                 const userVal = selectedAnswers[key];
                 if (userVal == null) return;
                 total++;
+
                 let fontVal = data[key] ?? font.features?.[key];
 
-                // پشتیبانی از ویژگی جدید
+                // پشتیبانی از مونولاین/باکُنتراست
                 if (key === "mono_contrast") {
                     const contrastVal = data.contrast ?? font.features?.contrast;
                     if (contrastVal !== undefined) {
@@ -498,6 +519,7 @@ function updateResults() {
                 }
 
                 if (fontVal === undefined || fontVal === null) return;
+
                 if (Array.isArray(fontVal)) {
                     score += fontVal.includes(userVal) ? 1 : 0;
                 } else if (typeof fontVal === 'number') {
@@ -508,6 +530,7 @@ function updateResults() {
             });
             return total > 0 ? Math.pow(score / total, 2) : 0;
         };
+
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
                 const s = hasAnyAnswer ? calculateScore(font.weights[wName]) : 0;
@@ -518,15 +541,18 @@ function updateResults() {
             finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
         }
     });
+
     if (!hasAnyAnswer) {
         finalFlatResults = finalFlatResults.sort(() => Math.random() - 0.5).slice(0, 10);
     } else {
         finalFlatResults = finalFlatResults.filter(r => r.score > 0).sort((a, b) => b.score - a.score);
     }
+
     if (finalFlatResults.length === 0 && hasAnyAnswer) {
         resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>نتیجه‌ای یافت نشد.</p>";
         return;
     }
+
     finalFlatResults.forEach(res => {
         const div = document.createElement("div");
         div.className = "result-item";

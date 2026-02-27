@@ -38,6 +38,11 @@
 			"label_fa": "انتهای ب نسبت به ابتدایش",
 			"type": "categorical",
 			"values": ["بالاتر", "برابر","پایین‌تر"]
+		},
+		"lam_alef_shape": {
+			"label_fa": "شکل ترکیب «لا»",
+			"type": "categorical",
+			"values": ["پایین مثلثی", "ساده پیوسته","ساده جدا"]
 		}
 	},
 	"fonts": [
@@ -50,7 +55,8 @@
 		"mid_ein_loop": ["توخالی"],
 		"meem_loop": ["بسته"],
 		"script_style": ["نسخ"],
-		"beh_end_vs_start": ["پایین‌تر"]
+		"beh_end_vs_start": ["پایین‌تر"],
+		"lam_alef_shape": ["ساده جدا"]
 	},
 	"weights": {
 		"regular": {
@@ -72,7 +78,8 @@
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
 				"script_style": ["نسخ"],
-		"beh_end_vs_start": ["پایین‌تر"]
+		"beh_end_vs_start": ["پایین‌تر"],
+		"lam_alef_shape": ["پایین مثلثی"]
 			},
 	"weights": {
 		"regular": {
@@ -96,7 +103,8 @@
 				"mid_ein_loop": ["توپر"],
 				"meem_loop": ["باز"],
 				"script_style": ["نسخ"],
-		"beh_end_vs_start": ["پایین‌تر"]
+		"beh_end_vs_start": ["پایین‌تر"],
+		"lam_alef_shape": ["پایین مثلثی"]
 			}
 		},
 		{
@@ -124,7 +132,8 @@
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
 				"script_style": ["دست‌نویس"],
-		"beh_end_vs_start": ["برابر"]
+		"beh_end_vs_start": ["برابر"],
+		"lam_alef_shape": ["ساده پیوسته"]
 			}
 		},
 		{
@@ -138,7 +147,8 @@
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
 				"script_style": ["نسخ"],
-		"beh_end_vs_start": ["برابر"]
+		"beh_end_vs_start": ["برابر"],
+		"lam_alef_shape": ["پایین مثلثی"]
 			}
 		},
 		{
@@ -152,7 +162,8 @@
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
 				"script_style": ["نسخ"],
-		"beh_end_vs_start": ["برابر"]
+		"beh_end_vs_start": ["برابر"],
+		"lam_alef_shape": ["پایین مثلثی"]
 			}
 		},
 		{
@@ -166,7 +177,8 @@
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["بسته"],
 				"script_style": ["نسخ", "دست‌نویس"],
-		"beh_end_vs_start": ["برابر"]
+		"beh_end_vs_start": ["برابر"],
+		"lam_alef_shape": ["ساده جدا"]
 			}
 		},
 		{
@@ -180,7 +192,8 @@
 				"mid_ein_loop": ["توخالی"],
 				"meem_loop": ["باز"],
 				"script_style": ["نسخ"],
-		"beh_end_vs_start": ["برابر"]
+		"beh_end_vs_start": ["برابر"],
+		"lam_alef_shape": ["ساده جدا"]
 			}
 		},
 		{
@@ -194,7 +207,8 @@
 				"mid_ein_loop": ["توپر"],
 				"meem_loop": ["توپر"],
 				"script_style": ["نستعلیق"],
-		"beh_end_vs_start": ["پایین‌تر"]
+		"beh_end_vs_start": ["پایین‌تر"],
+		"lam_alef_shape": ["ساده پیوسته"]
 			}
 		},
 		{
@@ -208,7 +222,8 @@
 				"mid_ein_loop": ["توپر"],
 				"meem_loop": ["بسته"],
 				"script_style": ["نسخ"],
-		"beh_end_vs_start": ["پایین‌تر"]
+		"beh_end_vs_start": ["پایین‌تر"],
+		"lam_alef_shape": ["ساده پیوسته"]
 			}
 		}
 	]
