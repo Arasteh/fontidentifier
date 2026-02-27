@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Font Finder Pro | جستجوگر پیشرفته فونت</title>
+    <title>Font Finder Pro | جستجوگر و مقایسه فونت</title>
     <style>
         :root {
             --primary: #4a78ff;
@@ -21,11 +21,46 @@
             line-height: 1.6;
         }
         .container { max-width: 1100px; margin: 0 auto; }
+
+        /* تب‌ها */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+        }
+        .tab-button.active {
+            background: white;
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+        }
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 20px;
+        }
+        .tab-content.active { display: block; }
+
         .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
         .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); height: fit-content; }
         
         h1 { color: var(--primary); margin-bottom: 25px; text-align: center; font-size: 24px; }
         h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
+        h4 { margin: 15px 0 10px; font-size: 15px; color: #555; }
         
         .chip {
             display: inline-block;
@@ -145,6 +180,27 @@
         button { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; background: #eee; font-family: inherit; font-size: 13px; transition: 0.2s; }
         button#nextBtn { background: var(--primary); color: white; }
         .hidden { display: none; }
+
+        /* مقایسه */
+        #compareTable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        #compareTable th, #compareTable td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            text-align: right;
+        }
+        #compareTable th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        #compareTable tr:hover {
+            background: #f0f7ff;
+        }
+
         @media(max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 
         @media (prefers-color-scheme: dark) {
@@ -163,29 +219,70 @@
             .weight-name { background: #333333; color: #aaaaaa; }
             button { background: #2a2a2a; color: #dddddd; }
             h3 { color: #ccc; border-bottom-color: var(--border); }
+            .tabs { background: #1e1e1e; }
+            .tab-button { background: #2a2a2a; color: #ddd; }
+            .tab-button.active { background: #1e1e1e; border-bottom-color: var(--primary); color: var(--primary); }
+            .tab-content { background: #1e1e1e; }
+            #compareTable th { background: #2a2a2a; }
+            #compareTable tr:hover { background: #1f2a44; }
         }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h1>جستجوگر فونت</h1>
-    <div class="layout">
-        <div class="card">
-            <div id="historyChips" style="margin-bottom: 15px;"></div>
-            <div id="questionContainer">
-                <p style="text-align:center; color:#888;">در حال بارگذاری داده‌ها...</p>
-            </div>
-            <div class="controls">
-                <div>
-                    <button onclick="prevStep()">قبلی</button>
-                    <button id="nextBtn" onclick="nextStep()">نمی‌دانم / بعدی</button>
+    <h1>جستجوگر و مقایسه فونت</h1>
+
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab('tab-detect')">تشخیص فونت</button>
+        <button class="tab-button" onclick="openTab('tab-compare')">مقایسه</button>
+    </div>
+
+    <!-- تب تشخیص فونت -->
+    <div id="tab-detect" class="tab-content active">
+        <div class="layout">
+            <div class="card">
+                <div id="historyChips" style="margin-bottom: 15px;"></div>
+                <div id="questionContainer">
+                    <p style="text-align:center; color:#888;">در حال بارگذاری داده‌ها...</p>
                 </div>
-                <button onclick="resetAll()" style="color: #888; background: transparent;">شروع از نو</button>
+                <div class="controls">
+                    <div>
+                        <button onclick="prevStep()">قبلی</button>
+                        <button id="nextBtn" onclick="nextStep()">نمی‌دانم / بعدی</button>
+                    </div>
+                    <button onclick="resetAll()" style="color: #888; background: transparent;">شروع از نو</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>نتایج تطبیق یافته</h3>
+                <div id="results"></div>
             </div>
         </div>
+    </div>
+
+    <!-- تب مقایسه -->
+    <div id="tab-compare" class="tab-content">
         <div class="card">
-            <h3>نتایج تطبیق یافته</h3>
-            <div id="results"></div>
+            <h3>مقایسه دو فونت</h3>
+            <p style="color:#666; margin-bottom:20px;">دو فونت (یا وزن مختلف) را انتخاب کنید تا فقط تفاوت‌هایشان نمایش داده شود.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="font-size:13px; display:block; margin-bottom:6px; color:#555;">فونت اول</label>
+                    <select id="font1Select" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px;"></select>
+                </div>
+                <div>
+                    <label style="font-size:13px; display:block; margin-bottom:6px; color:#555;">فونت دوم</label>
+                    <select id="font2Select" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px;"></select>
+                </div>
+            </div>
+
+            <button onclick="compareFonts()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer;">
+                نمایش تفاوت‌ها
+            </button>
+
+            <div id="compareResult" style="margin-top:25px; min-height:200px;"></div>
         </div>
     </div>
 </div>
@@ -195,6 +292,7 @@ let database = null;
 let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
+let allFontOptions = [];
 
 async function init() {
     try {
@@ -202,7 +300,6 @@ async function init() {
         if (!response.ok) throw new Error('فایل دیتابیس یافت نشد.');
         database = await response.json();
         
-        // اطمینان از وجود contrast
         if (!database.features.contrast) {
             database.features.contrast = {
                 "label_fa": "کنتراست ضخامت",
@@ -210,52 +307,56 @@ async function init() {
             };
         }
 
-        // ویژگی ۱: مونولاین یا باکنتراست
         database.features.mono_contrast = {
             label_fa: "مونولاین یا باکنتراست",
             type: "categorical",
             values: ["مونولاین", "باکُنتراست"]
         };
 
-        // ویژگی ۲: شکل ترکیب لا
         database.features.lam_alef_shape = {
             label_fa: "شکل ترکیب «لا»",
             type: "categorical",
             values: ["پایین مثلثی", "ساده پیوسته", "ساده جدا"]
         };
 
-        // اضافه کردن هر دو به ابتدای لیست
         const originalKeys = Object.keys(database.features)
             .filter(k => k !== "mono_contrast" && k !== "lam_alef_shape");
         featureKeys = ["mono_contrast", "lam_alef_shape", ...originalKeys];
 
         loadFromURL();
 
-        const buildInstances = () => {
-            let instances = [];
-            database.fonts.forEach(font => {
-                const base = font.features || {};
-                if (font.weights && typeof font.weights === 'object' && Object.keys(font.weights).length > 0) {
-                    Object.keys(font.weights).forEach(wName => {
-                        const wFeat = font.weights[wName] || {};
-                        const inst = { ...base, ...wFeat };
-                        // محاسبه مونولاین/باکُنتراست برای این وزن
-                        if (inst.contrast !== undefined) {
-                            inst.mono_contrast = inst.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
-                        }
-                        instances.push(inst);
-                    });
-                } else {
-                    const inst = { ...base };
-                    if (inst.contrast !== undefined) {
-                        inst.mono_contrast = inst.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
+        allFontOptions = [];
+        database.fonts.forEach(font => {
+            const base = font.features || {};
+            if (font.weights && typeof font.weights === 'object' && Object.keys(font.weights).length > 0) {
+                Object.keys(font.weights).forEach(wName => {
+                    const wFeat = font.weights[wName] || {};
+                    const data = { ...base, ...wFeat };
+                    if (data.contrast !== undefined) {
+                        data.mono_contrast = data.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
                     }
-                    instances.push(inst);
+                    allFontOptions.push({
+                        display: `${font.name} (${wName})`,
+                        name: font.name,
+                        weight: wName,
+                        data: data
+                    });
+                });
+            } else {
+                const data = { ...base };
+                if (data.contrast !== undefined) {
+                    data.mono_contrast = data.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
                 }
-            });
-            return instances;
-        };
-        const instances = buildInstances();
+                allFontOptions.push({
+                    display: font.name,
+                    name: font.name,
+                    weight: null,
+                    data: data
+                });
+            }
+        });
+
+        const instances = allFontOptions.map(o => o.data);
 
         const computeDistinction = (key) => {
             const feat = database.features[key];
@@ -264,7 +365,6 @@ async function init() {
             if (vals.length < 2) return 0;
             let entropy = 0;
             const total = vals.length;
-
             if (feat.type === "numeric") {
                 const minV = Math.min(...vals);
                 const maxV = Math.max(...vals);
@@ -304,9 +404,9 @@ async function init() {
             distinctionMap[key] = computeDistinction(key);
         });
 
-        // اگر نمی‌خواهی هر بار ترتیب عوض شود → این خط را کامنت کن
         featureKeys.sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
 
+        populateCompareSelects();
         renderQuestion();
         updateResults();
     } catch (error) {
@@ -316,6 +416,78 @@ async function init() {
     }
 }
 
+function populateCompareSelects() {
+    const sel1 = document.getElementById('font1Select');
+    const sel2 = document.getElementById('font2Select');
+    sel1.innerHTML = '<option value="">انتخاب کنید...</option>';
+    sel2.innerHTML = '<option value="">انتخاب کنید...</option>';
+    allFontOptions.forEach((opt, i) => {
+        const optHTML = `<option value="${i}">${opt.display}</option>`;
+        sel1.innerHTML += optHTML;
+        sel2.innerHTML += optHTML;
+    });
+}
+
+function compareFonts() {
+    const idx1 = parseInt(document.getElementById('font1Select').value);
+    const idx2 = parseInt(document.getElementById('font2Select').value);
+    if (isNaN(idx1) || isNaN(idx2) || idx1 === idx2) {
+        alert('لطفاً دو فونت متفاوت انتخاب کنید!');
+        return;
+    }
+    const f1 = allFontOptions[idx1];
+    const f2 = allFontOptions[idx2];
+    let html = `
+        <table id="compareTable">
+            <thead>
+                <tr>
+                    <th>ویژگی</th>
+                    <th>${f1.display}</th>
+                    <th>${f2.display}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    let hasDiff = false;
+    Object.keys(database.features).forEach(key => {
+        const feat = database.features[key];
+        let v1 = f1.data[key];
+        let v2 = f2.data[key];
+        if (key === "mono_contrast") {
+            v1 = f1.data.mono_contrast;
+            v2 = f2.data.mono_contrast;
+        }
+        if (v1 === undefined && v2 === undefined) return;
+        if (v1 === undefined) v1 = '—';
+        if (v2 === undefined) v2 = '—';
+        if (String(v1) !== String(v2)) {
+            hasDiff = true;
+            html += `
+                <tr>
+                    <td style="font-weight:600;">${feat.label_fa}</td>
+                    <td>${v1}</td>
+                    <td>${v2}</td>
+                </tr>
+            `;
+        }
+    });
+    html += `</tbody></table>`;
+
+    const resultDiv = document.getElementById('compareResult');
+    if (!hasDiff) {
+        resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:15px;">هیچ تفاوتی بین این دو فونت یافت نشد!</p>`;
+    } else {
+        resultDiv.innerHTML = html;
+    }
+}
+
+function openTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
 function updateURL() {
     if (!database) return;
     let compressed = "";
@@ -323,10 +495,7 @@ function updateURL() {
         const val = selectedAnswers[key];
         if (val === undefined) compressed += "x";
         else if (val === null) compressed += "u";
-        else if (database.features[key].type === "categorical") {
-            const idx = database.features[key].values.indexOf(val);
-            compressed += (idx >= 0 ? idx : "u");
-        }
+        else if (database.features[key].type === "categorical") compressed += database.features[key].values.indexOf(val);
         else compressed += Math.round(val * 10);
     });
     history.replaceState(null, "", "?f=" + compressed);
@@ -342,14 +511,8 @@ function loadFromURL() {
         if (!char || char === "x") return;
         if (char === "u") { selectedAnswers[key] = null; return; }
         const feat = database.features[key];
-        if (feat.type === "categorical") {
-            const idx = parseInt(char);
-            if (!isNaN(idx) && idx >= 0 && idx < feat.values.length) {
-                selectedAnswers[key] = feat.values[idx];
-            }
-        } else {
-            selectedAnswers[key] = parseInt(char) / 10;
-        }
+        if (feat.type === "categorical") selectedAnswers[key] = feat.values[parseInt(char)];
+        else selectedAnswers[key] = parseInt(char) / 10;
     });
 }
 
@@ -484,7 +647,6 @@ function renderHistory() {
     box.innerHTML = "";
     Object.keys(selectedAnswers).forEach(key => {
         const val = selectedAnswers[key];
-        if (val === undefined) return;
         const chip = document.createElement("div");
         chip.className = "chip history";
         chip.innerText = `${database.features[key].label_fa}: ${val === null ? '؟' : val}`;
@@ -507,19 +669,14 @@ function updateResults() {
                 const userVal = selectedAnswers[key];
                 if (userVal == null) return;
                 total++;
-
                 let fontVal = data[key] ?? font.features?.[key];
-
-                // پشتیبانی از مونولاین/باکُنتراست
                 if (key === "mono_contrast") {
                     const contrastVal = data.contrast ?? font.features?.contrast;
                     if (contrastVal !== undefined) {
                         fontVal = contrastVal > 0.3 ? "باکُنتراست" : "مونولاین";
                     }
                 }
-
                 if (fontVal === undefined || fontVal === null) return;
-
                 if (Array.isArray(fontVal)) {
                     score += fontVal.includes(userVal) ? 1 : 0;
                 } else if (typeof fontVal === 'number') {
@@ -530,7 +687,6 @@ function updateResults() {
             });
             return total > 0 ? Math.pow(score / total, 2) : 0;
         };
-
         if (font.weights) {
             Object.keys(font.weights).forEach(wName => {
                 const s = hasAnyAnswer ? calculateScore(font.weights[wName]) : 0;
@@ -541,18 +697,15 @@ function updateResults() {
             finalFlatResults.push({ name: font.name, url: font.url, weight: null, score: s });
         }
     });
-
     if (!hasAnyAnswer) {
         finalFlatResults = finalFlatResults.sort(() => Math.random() - 0.5).slice(0, 10);
     } else {
         finalFlatResults = finalFlatResults.filter(r => r.score > 0).sort((a, b) => b.score - a.score);
     }
-
     if (finalFlatResults.length === 0 && hasAnyAnswer) {
         resBox.innerHTML = "<p style='color:#999; text-align:center; font-size:13px;'>نتیجه‌ای یافت نشد.</p>";
         return;
     }
-
     finalFlatResults.forEach(res => {
         const div = document.createElement("div");
         div.className = "result-item";
