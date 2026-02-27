@@ -419,62 +419,75 @@ function autoCompare() {
         return;
     }
 
-    let html = `<table id="compareTable"><thead><tr><th>ویژگی</th>`;
-    if (f1) html += `<th>${f1.display}</th>`;
-    if (f2) html += `<th>${f2.display}</th>`;
-    html += `</tr></thead><tbody>`;
+    // ── فقط وقتی دو فونت انتخاب شده مقایسه واقعی انجام می‌شود ──
+    if (!f1 || !f2) {
+        // اگر فقط یکی انتخاب شده → می‌توانیم همه ویژگی‌های موجود را نشان دهیم یا پیام دهیم
+        const single = f1 || f2;
+        let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${single.display}</th></tr></thead><tbody>`;
 
-    let hasVisibleRows = false;
-    const isComparingTwo = f1 && f2;
+        let hasRows = false;
+        Object.keys(single.data).forEach(key => {
+            let val = single.data[key];
+            // نمایش مقدارهای معنی‌دار
+            if (val !== undefined && val !== null && val !== "") {
+                if (key === "contrast" && typeof val === "number") {
+                    val = val > 0.3 ? "باکُنتراست" : "مونولاین";
+                }
+                html += `<tr><td style="font-weight:600;">${key}</td><td>${val}</td></tr>`;
+                hasRows = true;
+            }
+        });
 
-    // فقط کلیدهای اصلی ویژگی‌ها (نه mono_contrast که محاسباتی است)
-    Object.keys(database.features).forEach(key => {
-        // mono_contrast را جداگانه مدیریت می‌کنیم و اینجا تکرار نمی‌کنیم
-        if (key === "mono_contrast") return;
+        html += `</tbody></table>`;
 
-        const label = database.features[key].label_fa || key;
-
-        // مقدار واقعی از داده فونت بگیریم
-        let v1 = f1 ? (f1.data[key] ?? "—") : "—";
-        let v2 = f2 ? (f2.data[key] ?? "—") : "—";
-
-        // برای mono_contrast مقدار محاسبه‌شده را استفاده کنیم
-        if (key === "contrast" && f1?.data.contrast !== undefined) {
-            v1 = f1.data.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
-        }
-        if (key === "contrast" && f2?.data.contrast !== undefined) {
-            v2 = f2.data.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
-        }
-
-        let shouldShow = false;
-
-        if (isComparingTwo) {
-            // شرط اصلی: هر دو مقدار معتبر باشند و با هم متفاوت باشند
-            const bothDefined = v1 !== "—" && v2 !== "—";
-            const valuesDiffer  = v1 !== v2;
-            shouldShow = bothDefined && valuesDiffer;
+        if (!hasRows) {
+            resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">این فونت ویژگی ثبت‌شده‌ای ندارد.</p>`;
         } else {
-            // فقط یک فونت انتخاب شده → ویژگی‌هایی که مقدار دارند نمایش داده شوند
-            shouldShow = (f1 && v1 !== "—") || (f2 && v2 !== "—");
+            resultDiv.innerHTML = html;
+        }
+        return;
+    }
+
+    // ── حالت مقایسه دو فونت ──
+    let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${f1.display}</th><th>${f2.display}</th></tr></thead><tbody>`;
+
+    // تمام کلیدهای ممکن از هر دو فونت
+    const allKeys = new Set([
+        ...Object.keys(f1.data || {}),
+        ...Object.keys(f2.data || {})
+    ]);
+
+    let hasDiff = false;
+
+    allKeys.forEach(key => {
+        let v1 = f1.data[key];
+        let v2 = f2.data[key];
+
+        // تبدیل contrast به mono_contrast اگر لازم باشد
+        if (key === "contrast") {
+            if (typeof v1 === "number") v1 = v1 > 0.3 ? "باکُنتراست" : "مونولاین";
+            if (typeof v2 === "number") v2 = v2 > 0.3 ? "باکُنتراست" : "مونولاین";
         }
 
-        if (shouldShow) {
-            hasVisibleRows = true;
-            html += `<tr><td style="font-weight:600;">${label}</td>`;
-            if (f1) html += `<td>${v1}</td>`;
-            if (f2) html += `<td>${v2}</td>`;
-            html += `</tr>`;
+        // مقادیر undefined/null/خالی را یکسان در نظر می‌گیریم
+        const norm1 = (v1 === undefined || v1 === null || v1 === "") ? "—" : v1;
+        const norm2 = (v2 === undefined || v2 === null || v2 === "") ? "—" : v2;
+
+        // فقط اگر متفاوت باشند → نمایش
+        if (norm1 !== norm2) {
+            hasDiff = true;
+            html += `<tr>
+                <td style="font-weight:600;">${key}</td>
+                <td>${norm1}</td>
+                <td>${norm2}</td>
+            </tr>`;
         }
     });
 
     html += `</tbody></table>`;
 
-    if (!hasVisibleRows) {
-        if (isComparingTwo) {
-            resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">هیچ تفاوت قابل‌توجهی بین این دو فونت یافت نشد.</p>`;
-        } else {
-            resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">این فونت ویژگی ثبت‌شده‌ای ندارد.</p>`;
-        }
+    if (!hasDiff) {
+        resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">این دو فونت از نظر ویژگی‌های ثبت‌شده هیچ تفاوتی ندارند.</p>`;
     } else {
         resultDiv.innerHTML = html;
     }
