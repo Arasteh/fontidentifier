@@ -411,13 +411,13 @@ function autoCompare() {
     const idx2 = parseInt(document.getElementById("font2Select").value);
     const resultDiv = document.getElementById("compareResult");
 
-    if (isNaN(idx1) && isNaN(idx2)) {
+    const f1 = isNaN(idx1) ? null : allFontOptions[idx1];
+    const f2 = isNaN(idx2) ? null : allFontOptions[idx2];
+
+    if (!f1 && !f2) {
         resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">لطفاً حداقل یک فونت انتخاب کنید.</p>`;
         return;
     }
-
-    let f1 = isNaN(idx1) ? null : allFontOptions[idx1];
-    let f2 = isNaN(idx2) ? null : allFontOptions[idx2];
 
     let html = `<table id="compareTable"><thead><tr><th>ویژگی</th>`;
     if (f1) html += `<th>${f1.display}</th>`;
@@ -425,20 +425,37 @@ function autoCompare() {
     html += `</tr></thead><tbody>`;
 
     let hasVisibleRows = false;
-    const isComparingTwo = f1 !== null && f2 !== null;
+    const isComparingTwo = f1 && f2;
 
+    // فقط کلیدهای اصلی ویژگی‌ها (نه mono_contrast که محاسباتی است)
     Object.keys(database.features).forEach(key => {
-        const label = database.features[key].label_fa;
-        let v1 = f1 ? (key === "mono_contrast" ? f1.data.mono_contrast : f1.data[key]) : null;
-        let v2 = f2 ? (key === "mono_contrast" ? f2.data.mono_contrast : f2.data[key]) : null;
+        // mono_contrast را جداگانه مدیریت می‌کنیم و اینجا تکرار نمی‌کنیم
+        if (key === "mono_contrast") return;
 
-        if (v1 === undefined || v1 === null) v1 = "—";
-        if (v2 === undefined || v2 === null) v2 = "—";
+        const label = database.features[key].label_fa || key;
 
-        // Logic: If two fonts are selected, only show if values differ
-        let shouldShow = true;
+        // مقدار واقعی از داده فونت بگیریم
+        let v1 = f1 ? (f1.data[key] ?? "—") : "—";
+        let v2 = f2 ? (f2.data[key] ?? "—") : "—";
+
+        // برای mono_contrast مقدار محاسبه‌شده را استفاده کنیم
+        if (key === "contrast" && f1?.data.contrast !== undefined) {
+            v1 = f1.data.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
+        }
+        if (key === "contrast" && f2?.data.contrast !== undefined) {
+            v2 = f2.data.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
+        }
+
+        let shouldShow = false;
+
         if (isComparingTwo) {
-            shouldShow = (v1 !== v2);
+            // شرط اصلی: هر دو مقدار معتبر باشند و با هم متفاوت باشند
+            const bothDefined = v1 !== "—" && v2 !== "—";
+            const valuesDiffer  = v1 !== v2;
+            shouldShow = bothDefined && valuesDiffer;
+        } else {
+            // فقط یک فونت انتخاب شده → ویژگی‌هایی که مقدار دارند نمایش داده شوند
+            shouldShow = (f1 && v1 !== "—") || (f2 && v2 !== "—");
         }
 
         if (shouldShow) {
@@ -453,7 +470,11 @@ function autoCompare() {
     html += `</tbody></table>`;
 
     if (!hasVisibleRows) {
-        resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">تمامی ویژگی‌های انتخابی یکسان هستند.</p>`;
+        if (isComparingTwo) {
+            resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">هیچ تفاوت قابل‌توجهی بین این دو فونت یافت نشد.</p>`;
+        } else {
+            resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">این فونت ویژگی ثبت‌شده‌ای ندارد.</p>`;
+        }
     } else {
         resultDiv.innerHTML = html;
     }
