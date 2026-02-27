@@ -27,7 +27,6 @@
         h1 { color: var(--primary); margin-bottom: 25px; text-align: center; font-size: 24px; }
         h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
         
-        /* Chips */
         .chip {
             display: inline-block;
             padding: 8px 16px;
@@ -40,7 +39,6 @@
         }
         .chip.selected { background: var(--primary); color: white; }
         .chip.history { background: #e8f0ff; color: var(--primary); font-size: 11px; padding: 4px 10px; }
-        /* Generic Visual Container */
         .visual-container {
             margin: 20px 0;
             background: #fdfdfd;
@@ -52,7 +50,6 @@
             align-items: center;
             gap: 20px;
         }
-        /* Ratio Visual (Bars) */
         .ratio-visual {
             display: flex;
             align-items: flex-end;
@@ -82,7 +79,6 @@
             font-weight: bold;
             white-space: nowrap;
         }
-        /* Contrast Visual (Circles) */
         .contrast-visual {
             display: flex;
             align-items: center;
@@ -106,13 +102,11 @@
         }
         .circle.fixed { width: 60px; height: 60px; background: #ddd; }
         .circle.dynamic { width: 60px; height: 60px; }
-        /* Slider */
         .slider-box { width: 100%; max-width: 300px; }
         input[type=range] {
             width: 100%;
             cursor: pointer;
         }
-        /* Results - Ultra Compact Style */
         .result-item {
             padding: 8px 12px;
             margin-bottom: 6px;
@@ -152,7 +146,6 @@
         .hidden { display: none; }
         @media(max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 
-        /* حالت تاریک خودکار */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #111111;
@@ -160,40 +153,15 @@
                 --text: #e5e5e5;
                 --border: #383838;
             }
-            .chip {
-                background: #2a2a2a;
-                color: #c0c0c0;
-            }
-            .chip.history {
-                background: #1f2a44;
-                color: var(--primary);
-            }
-            .visual-container {
-                background: #1a1a1a;
-                border-color: #4a4a4a;
-            }
-            .rect.base {
-                background: #4a4a4a;
-            }
-            .circle.fixed {
-                background: #555555;
-            }
-            .result-item {
-                background: var(--card);
-                border-color: var(--border);
-            }
-            .weight-name {
-                background: #333333;
-                color: #aaaaaa;
-            }
-            button {
-                background: #2a2a2a;
-                color: #dddddd;
-            }
-            h3 {
-                color: #ccc;
-                border-bottom-color: var(--border);
-            }
+            .chip { background: #2a2a2a; color: #c0c0c0; }
+            .chip.history { background: #1f2a44; color: var(--primary); }
+            .visual-container { background: #1a1a1a; border-color: #4a4a4a; }
+            .rect.base { background: #4a4a4a; }
+            .circle.fixed { background: #555555; }
+            .result-item { background: var(--card); border-color: var(--border); }
+            .weight-name { background: #333333; color: #aaaaaa; }
+            button { background: #2a2a2a; color: #dddddd; }
+            h3 { color: #ccc; border-bottom-color: var(--border); }
         }
     </style>
 </head>
@@ -220,18 +188,20 @@
         </div>
     </div>
 </div>
+
 <script>
 let database = null;
 let featureKeys = [];
 let currentStep = 0;
 let selectedAnswers = {};
+
 async function init() {
     try {
         const response = await fetch('database.json');
         if (!response.ok) throw new Error('فایل دیتابیس یافت نشد.');
         database = await response.json();
         
-        // Ensure contrast feature exists
+        // اطمینان از وجود contrast
         if (!database.features.contrast) {
             database.features.contrast = {
                 "label_fa": "کنتراست ضخامت",
@@ -239,9 +209,17 @@ async function init() {
             };
         }
 
-        // ترتیب سؤال‌ها بر اساس قدرت تمایز داده‌های واقعی (داینامیک و خودکار با اضافه شدن فونت/ویژگی جدید)
-        const originalOrder = Object.keys(database.features);
-        featureKeys = [...originalOrder];
+        // اضافه کردن ویژگی جدید بدون تغییر بقیه
+        database.features.mono_contrast = {
+            label_fa: "مونولاین یا باکنتراست",
+            type: "categorical",
+            values: ["مونولاین", "باکُنتراست"]
+        };
+
+        // فقط ویژگی جدید را به ابتدای لیست اضافه می‌کنیم — ترتیب قبلی حفظ می‌شود
+        const originalKeys = Object.keys(database.features).filter(k => k !== "mono_contrast");
+        featureKeys = ["mono_contrast", ...originalKeys];
+
         loadFromURL();
 
         const buildInstances = () => {
@@ -252,10 +230,17 @@ async function init() {
                     Object.keys(font.weights).forEach(wName => {
                         const wFeat = font.weights[wName] || {};
                         const inst = { ...base, ...wFeat };
+                        if (inst.contrast !== undefined) {
+                            inst.mono_contrast = inst.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
+                        }
                         instances.push(inst);
                     });
                 } else {
-                    instances.push({ ...base });
+                    const inst = { ...base };
+                    if (inst.contrast !== undefined) {
+                        inst.mono_contrast = inst.contrast > 0.3 ? "باکُنتراست" : "مونولاین";
+                    }
+                    instances.push(inst);
                 }
             });
             return instances;
@@ -269,6 +254,7 @@ async function init() {
             if (vals.length < 2) return 0;
             let entropy = 0;
             const total = vals.length;
+
             if (feat.type === "numeric") {
                 const minV = Math.min(...vals);
                 const maxV = Math.max(...vals);
@@ -290,13 +276,7 @@ async function init() {
             } else {
                 const valueCounts = {};
                 vals.forEach(v => {
-                    let sig;
-                    if (Array.isArray(v)) {
-                        const uniqueSorted = [...new Set(v.map(String))].sort();
-                        sig = JSON.stringify(uniqueSorted);
-                    } else {
-                        sig = String(v);
-                    }
+                    const sig = String(v);
                     valueCounts[sig] = (valueCounts[sig] || 0) + 1;
                 });
                 Object.values(valueCounts).forEach(c => {
@@ -310,16 +290,12 @@ async function init() {
         };
 
         const distinctionMap = {};
-        originalOrder.forEach(key => {
+        featureKeys.forEach(key => {
             distinctionMap[key] = computeDistinction(key);
         });
 
-        // اعمال ترتیب جدید (بیشترین تمایز اول) بدون تغییر در بارگذاری URL
-        featureKeys = [...originalOrder].sort((a, b) => {
-            const diff = (distinctionMap[b] || 0) - (distinctionMap[a] || 0);
-            if (diff !== 0) return diff;
-            return originalOrder.indexOf(a) - originalOrder.indexOf(b);
-        });
+        // مرتب‌سازی بر اساس تمایز (اختیاری — اگر نمی‌خواهید تغییر کند، این بخش را کامنت کنید)
+        //featureKeys.sort((a, b) => (distinctionMap[b] || 0) - (distinctionMap[a] || 0));
 
         renderQuestion();
         updateResults();
@@ -329,6 +305,7 @@ async function init() {
             `<p style="color:red; text-align:center;">خطا در بارگذاری دیتابیس. لطفا فایل database.json را بررسی کنید.</p>`;
     }
 }
+
 function updateURL() {
     if (!database) return;
     let compressed = "";
@@ -341,6 +318,7 @@ function updateURL() {
     });
     history.replaceState(null, "", "?f=" + compressed);
 }
+
 function loadFromURL() {
     if (!database) return;
     const params = new URLSearchParams(location.search);
@@ -355,6 +333,7 @@ function loadFromURL() {
         else selectedAnswers[key] = parseInt(char) / 10;
     });
 }
+
 function renderQuestion() {
     if (!database) return;
     const key = featureKeys[currentStep];
@@ -366,7 +345,6 @@ function renderQuestion() {
     renderHistory();
     const currentVal = selectedAnswers[key];
     
-    // Button state management
     if (currentStep === featureKeys.length - 1 && currentVal !== undefined) {
         nextBtn.classList.add("hidden");
     } else if (currentStep >= featureKeys.length - 1 && currentVal === undefined) {
@@ -376,6 +354,7 @@ function renderQuestion() {
         nextBtn.classList.remove("hidden");
         nextBtn.innerText = (currentVal == null) ? "نمی‌دانم / بعدی" : "بعدی";
     }
+
     if (feature.type === "categorical") {
         const chipContainer = document.createElement("div");
         feature.values.forEach(val => {
@@ -462,6 +441,7 @@ function renderQuestion() {
         container.appendChild(visualWrap);
     }
 }
+
 function nextStep() {
     if (currentStep < featureKeys.length - 1) {
         const key = featureKeys[currentStep];
@@ -474,9 +454,11 @@ function nextStep() {
         renderQuestion();
     }
 }
+
 function prevStep() {
     if (currentStep > 0) { currentStep--; renderQuestion(); }
 }
+
 function renderHistory() {
     if (!database) return;
     const box = document.getElementById("historyChips");
@@ -490,6 +472,7 @@ function renderHistory() {
         box.appendChild(chip);
     });
 }
+
 function updateResults() {
     if (!database) return;
     const resBox = document.getElementById("results");
@@ -504,10 +487,17 @@ function updateResults() {
                 const userVal = selectedAnswers[key];
                 if (userVal == null) return;
                 total++;
-                let fontVal = data[key] ?? font.features[key];
-                if (fontVal === undefined || fontVal === null) {
-                    return;
+                let fontVal = data[key] ?? font.features?.[key];
+
+                // پشتیبانی از ویژگی جدید
+                if (key === "mono_contrast") {
+                    const contrastVal = data.contrast ?? font.features?.contrast;
+                    if (contrastVal !== undefined) {
+                        fontVal = contrastVal > 0.3 ? "باکُنتراست" : "مونولاین";
+                    }
                 }
+
+                if (fontVal === undefined || fontVal === null) return;
                 if (Array.isArray(fontVal)) {
                     score += fontVal.includes(userVal) ? 1 : 0;
                 } else if (typeof fontVal === 'number') {
@@ -516,7 +506,6 @@ function updateResults() {
                     score += (fontVal === userVal) ? 1 : 0;
                 }
             });
-            // امتیازدهی غیرخطی (توان ۲) تا اختلاف بین فونت‌های نزدیک (مثل ۴ از ۵ در مقابل ۳ از ۵) بسیار بیشتر و نمایان‌تر شود
             return total > 0 ? Math.pow(score / total, 2) : 0;
         };
         if (font.weights) {
@@ -553,6 +542,7 @@ function updateResults() {
         resBox.appendChild(div);
     });
 }
+
 function resetAll() {
     selectedAnswers = {};
     currentStep = 0;
@@ -560,6 +550,7 @@ function resetAll() {
     renderQuestion();
     updateResults();
 }
+
 init();
 </script>
 </body>
