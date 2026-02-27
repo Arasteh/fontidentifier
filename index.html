@@ -213,6 +213,35 @@
             .weight-name { background: #333; color: #bbb; }
             p[style*="color:#666"], p[style*="color:#555"], label[style*="color:#555"] { color: #aaa !important; }
         }
+        #compareTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 15px;
+    table-layout: fixed;       /* ← مهم: عرض ستون‌ها ثابت می‌ماند */
+}
+
+#compareTable th, #compareTable td {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;       /* جلوگیری از شکستن خط */
+}
+
+#compareTable th:nth-child(1),
+#compareTable td:nth-child(1) {
+    width: 38%;                /* ستون نام ویژگی */
+}
+
+#compareTable th:nth-child(2),
+#compareTable td:nth-child(2),
+#compareTable th:nth-child(3),
+#compareTable td:nth-child(3) {
+    width: 31%;                /* هر کدام از دو ستون فونت */
+    text-align: center;        /* وسط‌چین برای مقادیر */
+}
     </style>
 </head>
 <body>
@@ -419,73 +448,84 @@ function autoCompare() {
         return;
     }
 
-    // فقط یک فونت انتخاب شده
-    if (!f1 || !f2) {
-        const single = f1 || f2;
-        let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${single.display}</th></tr></thead><tbody>`;
+// فقط یک فونت انتخاب شده
+if (!f1 || !f2) {
+    const single = f1 || f2;
+    let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${single.display}</th></tr></thead><tbody>`;
 
-        Object.entries(single.data)
-            .filter(([_, val]) => val !== undefined && val !== null && val !== "")
-            .forEach(([key, val]) => {
-                let displayVal = val;
-                if (key === "contrast" && typeof val === "number") {
-                    displayVal = val > 0.3 ? "باکُنتراست" : "مونولاین";
-                }
-                html += `<tr><td style="font-weight:600;">${key}</td><td>${displayVal}</td></tr>`;
-            });
+    Object.entries(single.data)
+        .filter(([_, val]) => val !== undefined && val !== null && val !== "")
+        .forEach(([key, val]) => {
+            let displayVal = val;
+            if (key === "contrast" && typeof val === "number") {
+                displayVal = val > 0.3 ? "باکُنتراست" : "مونولاین";
+            }
 
-        html += `</tbody></table>`;
+            let featureLabel = key;
+            if (database?.features?.[key]?.label_fa) {
+                featureLabel = database.features[key].label_fa;
+            }
 
-        resultDiv.innerHTML = html || `<p style="text-align:center; color:#888; padding:40px 0;">ویژگی ثبت‌شده‌ای یافت نشد.</p>`;
-        return;
-    }
-
-    // ── مقایسه دو فونت ── فقط موارد متفاوت
-    let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${f1.display}</th><th>${f2.display}</th></tr></thead><tbody>`;
-
-    // جمع‌آوری تمام کلیدهای ممکن
-    const allKeys = new Set([
-        ...Object.keys(f1.data || {}),
-        ...Object.keys(f2.data || {})
-    ]);
-
-    let diffCount = 0;
-
-    [...allKeys].sort().forEach(key => {
-        let v1 = f1.data[key];
-        let v2 = f2.data[key];
-
-        // نرمال‌سازی contrast → mono_contrast
-        if (key === "contrast") {
-            v1 = typeof v1 === "number" ? (v1 > 0.3 ? "باکُنتراست" : "مونولاین") : v1;
-            v2 = typeof v2 === "number" ? (v2 > 0.3 ? "باکُنتراست" : "مونولاین") : v2;
-        }
-
-        // تبدیل به رشته برای مقایسه دقیق‌تر
-        const str1 = v1 === undefined || v1 === null || v1 === "" ? "—" : String(v1).trim();
-        const str2 = v2 === undefined || v2 === null || v2 === "" ? "—" : String(v2).trim();
-
-        if (str1 !== str2) {
-            diffCount++;
-            html += `
-                <tr>
-                    <td style="font-weight:600; color:#444;">${key}</td>
-                    <td style="${str1 === '—' ? 'color:#aaa;' : ''}">${str1}</td>
-                    <td style="${str2 === '—' ? 'color:#aaa;' : ''}">${str2}</td>
-                </tr>`;
-        }
-    });
+            html += `<tr><td style="font-weight:600;">${featureLabel}</td><td>${displayVal}</td></tr>`;
+        });
 
     html += `</tbody></table>`;
 
-    if (diffCount === 0) {
-        resultDiv.innerHTML = `
-            <p style="text-align:center; color:#888; padding:40px 0; direction:rtl;">
-                هیچ تفاوت ثبت‌شده‌ای بین این دو فونت وجود ندارد.
-            </p>`;
-    } else {
-        resultDiv.innerHTML = html;
+    resultDiv.innerHTML = html || `<p style="text-align:center; color:#888; padding:40px 0;">ویژگی ثبت‌شده‌ای یافت نشد.</p>`;
+    return;
+}
+
+// ── مقایسه دو فونت ── فقط موارد متفاوت
+let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${f1.display}</th><th>${f2.display}</th></tr></thead><tbody>`;
+
+const allKeys = new Set([
+    ...Object.keys(f1.data || {}),
+    ...Object.keys(f2.data || {})
+]);
+
+let diffCount = 0;
+
+[...allKeys].sort().forEach(key => {
+    let v1 = f1.data[key];
+    let v2 = f2.data[key];
+
+    // نرمال‌سازی contrast
+    if (key === "contrast") {
+        v1 = typeof v1 === "number" ? (v1 > 0.3 ? "باکُنتراست" : "مونولاین") : v1;
+        v2 = typeof v2 === "number" ? (v2 > 0.3 ? "باکُنتراست" : "مونولاین") : v2;
     }
+
+    const str1 = (v1 === undefined || v1 === null || v1 === "") ? "—" : String(v1).trim();
+    const str2 = (v2 === undefined || v2 === null || v2 === "") ? "—" : String(v2).trim();
+
+    if (str1 !== str2) {
+        diffCount++;
+
+        // گرفتن نام زیبای فارسی
+        let featureLabel = key;
+        if (database?.features?.[key]?.label_fa) {
+            featureLabel = database.features[key].label_fa;
+        }
+
+        html += `
+            <tr>
+                <td style="font-weight:600; color:#444;">${featureLabel}</td>
+                <td style="${str1 === '—' ? 'color:#aaa;' : ''}">${str1}</td>
+                <td style="${str2 === '—' ? 'color:#aaa;' : ''}">${str2}</td>
+            </tr>`;
+    }
+});
+
+html += `</tbody></table>`;
+
+if (diffCount === 0) {
+    resultDiv.innerHTML = `
+        <p style="text-align:center; color:#888; padding:40px 0; direction:rtl;">
+            هیچ تفاوت ثبت‌شده‌ای بین این دو فونت وجود ندارد.
+        </p>`;
+} else {
+    resultDiv.innerHTML = html;
+}
 }
 
 function openTab(tabId) {
