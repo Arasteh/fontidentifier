@@ -419,75 +419,70 @@ function autoCompare() {
         return;
     }
 
-    // ── فقط وقتی دو فونت انتخاب شده مقایسه واقعی انجام می‌شود ──
+    // فقط یک فونت انتخاب شده
     if (!f1 || !f2) {
-        // اگر فقط یکی انتخاب شده → می‌توانیم همه ویژگی‌های موجود را نشان دهیم یا پیام دهیم
         const single = f1 || f2;
         let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${single.display}</th></tr></thead><tbody>`;
 
-        let hasRows = false;
-        Object.keys(single.data).forEach(key => {
-            let val = single.data[key];
-            // نمایش مقدارهای معنی‌دار
-            if (val !== undefined && val !== null && val !== "") {
+        Object.entries(single.data)
+            .filter(([_, val]) => val !== undefined && val !== null && val !== "")
+            .forEach(([key, val]) => {
+                let displayVal = val;
                 if (key === "contrast" && typeof val === "number") {
-                    val = val > 0.3 ? "باکُنتراست" : "مونولاین";
+                    displayVal = val > 0.3 ? "باکُنتراست" : "مونولاین";
                 }
-                html += `<tr><td style="font-weight:600;">${key}</td><td>${val}</td></tr>`;
-                hasRows = true;
-            }
-        });
+                html += `<tr><td style="font-weight:600;">${key}</td><td>${displayVal}</td></tr>`;
+            });
 
         html += `</tbody></table>`;
 
-        if (!hasRows) {
-            resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">این فونت ویژگی ثبت‌شده‌ای ندارد.</p>`;
-        } else {
-            resultDiv.innerHTML = html;
-        }
+        resultDiv.innerHTML = html || `<p style="text-align:center; color:#888; padding:40px 0;">ویژگی ثبت‌شده‌ای یافت نشد.</p>`;
         return;
     }
 
-    // ── حالت مقایسه دو فونت ──
+    // ── مقایسه دو فونت ── فقط موارد متفاوت
     let html = `<table id="compareTable"><thead><tr><th>ویژگی</th><th>${f1.display}</th><th>${f2.display}</th></tr></thead><tbody>`;
 
-    // تمام کلیدهای ممکن از هر دو فونت
+    // جمع‌آوری تمام کلیدهای ممکن
     const allKeys = new Set([
         ...Object.keys(f1.data || {}),
         ...Object.keys(f2.data || {})
     ]);
 
-    let hasDiff = false;
+    let diffCount = 0;
 
-    allKeys.forEach(key => {
+    [...allKeys].sort().forEach(key => {
         let v1 = f1.data[key];
         let v2 = f2.data[key];
 
-        // تبدیل contrast به mono_contrast اگر لازم باشد
+        // نرمال‌سازی contrast → mono_contrast
         if (key === "contrast") {
-            if (typeof v1 === "number") v1 = v1 > 0.3 ? "باکُنتراست" : "مونولاین";
-            if (typeof v2 === "number") v2 = v2 > 0.3 ? "باکُنتراست" : "مونولاین";
+            v1 = typeof v1 === "number" ? (v1 > 0.3 ? "باکُنتراست" : "مونولاین") : v1;
+            v2 = typeof v2 === "number" ? (v2 > 0.3 ? "باکُنتراست" : "مونولاین") : v2;
         }
 
-        // مقادیر undefined/null/خالی را یکسان در نظر می‌گیریم
-        const norm1 = (v1 === undefined || v1 === null || v1 === "") ? "—" : v1;
-        const norm2 = (v2 === undefined || v2 === null || v2 === "") ? "—" : v2;
+        // تبدیل به رشته برای مقایسه دقیق‌تر
+        const str1 = v1 === undefined || v1 === null || v1 === "" ? "—" : String(v1).trim();
+        const str2 = v2 === undefined || v2 === null || v2 === "" ? "—" : String(v2).trim();
 
-        // فقط اگر متفاوت باشند → نمایش
-        if (norm1 !== norm2) {
-            hasDiff = true;
-            html += `<tr>
-                <td style="font-weight:600;">${key}</td>
-                <td>${norm1}</td>
-                <td>${norm2}</td>
-            </tr>`;
+        if (str1 !== str2) {
+            diffCount++;
+            html += `
+                <tr>
+                    <td style="font-weight:600; color:#444;">${key}</td>
+                    <td style="${str1 === '—' ? 'color:#aaa;' : ''}">${str1}</td>
+                    <td style="${str2 === '—' ? 'color:#aaa;' : ''}">${str2}</td>
+                </tr>`;
         }
     });
 
     html += `</tbody></table>`;
 
-    if (!hasDiff) {
-        resultDiv.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">این دو فونت از نظر ویژگی‌های ثبت‌شده هیچ تفاوتی ندارند.</p>`;
+    if (diffCount === 0) {
+        resultDiv.innerHTML = `
+            <p style="text-align:center; color:#888; padding:40px 0; direction:rtl;">
+                هیچ تفاوت ثبت‌شده‌ای بین این دو فونت وجود ندارد.
+            </p>`;
     } else {
         resultDiv.innerHTML = html;
     }
